@@ -1,32 +1,50 @@
-import path from 'path';
-import { FileSystemUtils } from './file-system.js';
-import { writeChangeMetadata, validateSchemaName } from './change-metadata.js';
-import { readProjectConfig } from '../core/project-config.js';
+import path from "path";
+import type { ChangeMetadata } from "../core/artifact-graph/types.js";
+import { FileSystemUtils } from "./file-system.js";
+import { writeChangeMetadata, validateSchemaName } from "./change-metadata.js";
+import { readProjectConfig } from "../core/project-config.js";
+import {
+	OPENSPEX_VARIANT,
+	scaffoldManagedFiles,
+	setupOpenSpexWorkspace,
+} from "./openspex.js";
 
-const DEFAULT_SCHEMA = 'spec-driven';
+const DEFAULT_SCHEMA = "spec-driven";
 
 /**
  * Options for creating a change.
  */
 export interface CreateChangeOptions {
-  /** The workflow schema to use (default: 'spec-driven') */
-  schema?: string;
+	/** The workflow schema to use (default: 'spec-driven') */
+	schema?: string;
+	/** Optional execution variant for stricter workflows */
+	variant?: "openspex";
+	/** Optional OpenSpeX branch override */
+	branch?: string;
+	/** Optional OpenSpeX worktree path override */
+	worktree?: string;
+	/** Optional OpenSpeX pull request reference */
+	pr?: string;
+	/** Optional OpenSpeX merge commit SHA */
+	mergeCommit?: string;
+	/** Repo-relative files to place under OpenSpeX shadow-spec management */
+	managedFiles?: string[];
 }
 
 /**
  * Result of creating a change.
  */
 export interface CreateChangeResult {
-  /** The schema that was actually used (resolved from options, config, or default) */
-  schema: string;
+	/** The schema that was actually used (resolved from options, config, or default) */
+	schema: string;
 }
 
 /**
  * Result of validating a change name.
  */
 export interface ValidationResult {
-  valid: boolean;
-  error?: string;
+	valid: boolean;
+	error?: string;
 }
 
 /**
@@ -46,45 +64,65 @@ export interface ValidationResult {
  * validateChangeName('Add-Auth') // { valid: false, error: '...' }
  */
 export function validateChangeName(name: string): ValidationResult {
-  // Pattern: starts with lowercase letter, followed by lowercase letters/numbers,
-  // optionally followed by hyphen + lowercase letters/numbers (repeatable)
-  const kebabCasePattern = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
+	// Pattern: starts with lowercase letter, followed by lowercase letters/numbers,
+	// optionally followed by hyphen + lowercase letters/numbers (repeatable)
+	const kebabCasePattern = /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/;
 
-  if (!name) {
-    return { valid: false, error: 'Change name cannot be empty' };
-  }
+	if (!name) {
+		return { valid: false, error: "Change name cannot be empty" };
+	}
 
-  if (!kebabCasePattern.test(name)) {
-    // Provide specific error messages for common mistakes
-    if (/[A-Z]/.test(name)) {
-      return { valid: false, error: 'Change name must be lowercase (use kebab-case)' };
-    }
-    if (/\s/.test(name)) {
-      return { valid: false, error: 'Change name cannot contain spaces (use hyphens instead)' };
-    }
-    if (/_/.test(name)) {
-      return { valid: false, error: 'Change name cannot contain underscores (use hyphens instead)' };
-    }
-    if (name.startsWith('-')) {
-      return { valid: false, error: 'Change name cannot start with a hyphen' };
-    }
-    if (name.endsWith('-')) {
-      return { valid: false, error: 'Change name cannot end with a hyphen' };
-    }
-    if (/--/.test(name)) {
-      return { valid: false, error: 'Change name cannot contain consecutive hyphens' };
-    }
-    if (/[^a-z0-9-]/.test(name)) {
-      return { valid: false, error: 'Change name can only contain lowercase letters, numbers, and hyphens' };
-    }
-    if (/^[0-9]/.test(name)) {
-      return { valid: false, error: 'Change name must start with a letter' };
-    }
+	if (!kebabCasePattern.test(name)) {
+		// Provide specific error messages for common mistakes
+		if (/[A-Z]/.test(name)) {
+			return {
+				valid: false,
+				error: "Change name must be lowercase (use kebab-case)",
+			};
+		}
+		if (/\s/.test(name)) {
+			return {
+				valid: false,
+				error: "Change name cannot contain spaces (use hyphens instead)",
+			};
+		}
+		if (/_/.test(name)) {
+			return {
+				valid: false,
+				error: "Change name cannot contain underscores (use hyphens instead)",
+			};
+		}
+		if (name.startsWith("-")) {
+			return { valid: false, error: "Change name cannot start with a hyphen" };
+		}
+		if (name.endsWith("-")) {
+			return { valid: false, error: "Change name cannot end with a hyphen" };
+		}
+		if (/--/.test(name)) {
+			return {
+				valid: false,
+				error: "Change name cannot contain consecutive hyphens",
+			};
+		}
+		if (/[^a-z0-9-]/.test(name)) {
+			return {
+				valid: false,
+				error:
+					"Change name can only contain lowercase letters, numbers, and hyphens",
+			};
+		}
+		if (/^[0-9]/.test(name)) {
+			return { valid: false, error: "Change name must start with a letter" };
+		}
 
-    return { valid: false, error: 'Change name must follow kebab-case convention (e.g., add-auth, refactor-db)' };
-  }
+		return {
+			valid: false,
+			error:
+				"Change name must follow kebab-case convention (e.g., add-auth, refactor-db)",
+		};
+	}
 
-  return { valid: true };
+	return { valid: true };
 }
 
 /**
@@ -110,51 +148,72 @@ export function validateChangeName(name: string): ValidationResult {
  * console.log(result.schema) // 'my-workflow'
  */
 export async function createChange(
-  projectRoot: string,
-  name: string,
-  options: CreateChangeOptions = {}
+	projectRoot: string,
+	name: string,
+	options: CreateChangeOptions = {},
 ): Promise<CreateChangeResult> {
-  // Validate the name first
-  const validation = validateChangeName(name);
-  if (!validation.valid) {
-    throw new Error(validation.error);
-  }
+	// Validate the name first
+	const validation = validateChangeName(name);
+	if (!validation.valid) {
+		throw new Error(validation.error);
+	}
 
-  // Determine schema: explicit option → project config → hardcoded default
-  let schemaName: string;
-  if (options.schema) {
-    schemaName = options.schema;
-  } else {
-    // Try to read from project config
-    try {
-      const config = readProjectConfig(projectRoot);
-      schemaName = config?.schema ?? DEFAULT_SCHEMA;
-    } catch {
-      // If config read fails, use default
-      schemaName = DEFAULT_SCHEMA;
-    }
-  }
+	// Determine schema: explicit option → project config → hardcoded default
+	let schemaName: string;
+	if (options.schema) {
+		schemaName = options.schema;
+	} else {
+		// Try to read from project config
+		try {
+			const config = readProjectConfig(projectRoot);
+			schemaName = config?.schema ?? DEFAULT_SCHEMA;
+		} catch {
+			// If config read fails, use default
+			schemaName = DEFAULT_SCHEMA;
+		}
+	}
 
-  // Validate the resolved schema
-  validateSchemaName(schemaName, projectRoot);
+	// Validate the resolved schema
+	validateSchemaName(schemaName, projectRoot);
 
-  // Build the change directory path
-  const changeDir = path.join(projectRoot, 'openspec', 'changes', name);
+	// Build the change directory path
+	const changeDir = path.join(projectRoot, "openspec", "changes", name);
 
-  // Check if change already exists
-  if (await FileSystemUtils.directoryExists(changeDir)) {
-    throw new Error(`Change '${name}' already exists at ${changeDir}`);
-  }
+	// Check if change already exists
+	if (await FileSystemUtils.directoryExists(changeDir)) {
+		throw new Error(`Change '${name}' already exists at ${changeDir}`);
+	}
 
-  // Create the directory (including parent directories if needed)
-  await FileSystemUtils.createDirectory(changeDir);
+	// Create the directory (including parent directories if needed)
+	await FileSystemUtils.createDirectory(changeDir);
 
-  // Write metadata file with schema and creation date
-  const today = new Date().toISOString().split('T')[0];
-  writeChangeMetadata(changeDir, {
-    schema: schemaName,
-    created: today,
-  }, projectRoot);
+	// Write metadata file with schema and creation date
+	const today = new Date().toISOString().split("T")[0];
+	const metadata: ChangeMetadata = {
+		schema: schemaName,
+		created: today,
+		...(options.variant === OPENSPEX_VARIANT
+			? {
+					variant: OPENSPEX_VARIANT,
+					openspex: setupOpenSpexWorkspace(projectRoot, name, {
+						branch: options.branch,
+						worktree: options.worktree,
+						pr: options.pr,
+						mergeCommit: options.mergeCommit,
+					}),
+				}
+			: {}),
+	};
 
-  return { schema: schemaName };
+	writeChangeMetadata(changeDir, metadata, projectRoot);
+
+	if (
+		options.variant === OPENSPEX_VARIANT &&
+		options.managedFiles &&
+		options.managedFiles.length > 0
+	) {
+		scaffoldManagedFiles(projectRoot, name, changeDir, options.managedFiles);
+	}
+
+	return { schema: schemaName };
 }

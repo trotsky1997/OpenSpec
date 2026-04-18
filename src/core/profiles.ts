@@ -5,29 +5,36 @@
  * Profiles determine WHICH workflows; delivery (in global config) determines HOW.
  */
 
-import type { Profile } from './global-config.js';
+import type { Profile } from "./global-config.js";
 
 /**
  * Core workflows included in the 'core' profile.
  * These provide the streamlined experience for new users.
  */
-export const CORE_WORKFLOWS = ['propose', 'explore', 'apply', 'archive'] as const;
+export const CORE_WORKFLOWS = [
+	"propose",
+	"explore",
+	"apply",
+	"archive",
+] as const;
 
 /**
  * All available workflows in the system.
  */
 export const ALL_WORKFLOWS = [
-  'propose',
-  'explore',
-  'new',
-  'continue',
-  'apply',
-  'ff',
-  'sync',
-  'archive',
-  'bulk-archive',
-  'verify',
-  'onboard',
+	"propose",
+	"explore",
+	"new",
+	"continue",
+	"apply",
+	"ff",
+	"sync",
+	"archive",
+	"bulk-archive",
+	"verify",
+	"inspect",
+	"clarify",
+	"onboard",
 ] as const;
 
 export type WorkflowId = (typeof ALL_WORKFLOWS)[number];
@@ -40,11 +47,11 @@ export type CoreWorkflowId = (typeof CORE_WORKFLOWS)[number];
  * - 'custom' profile returns the provided customWorkflows, or empty array if not provided
  */
 export function getProfileWorkflows(
-  profile: Profile,
-  customWorkflows?: string[]
+	profile: Profile,
+	customWorkflows?: string[],
 ): readonly string[] {
-  if (profile === 'custom') {
-    return customWorkflows ?? [];
-  }
-  return CORE_WORKFLOWS;
+	if (profile === "custom") {
+		return customWorkflows ?? [];
+	}
+	return CORE_WORKFLOWS;
 }
