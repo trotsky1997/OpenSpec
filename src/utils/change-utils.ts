@@ -9,6 +9,7 @@ import {
 	setupSolidSpecWorkspace,
 } from "./solidspec.js";
 import {
+	DEFAULT_CHANGE_VARIANT,
 	SOLIDSPEC_VARIANT,
 	type StrictWorkflowVariant,
 	isStrictWorkflowVariant,
@@ -22,7 +23,7 @@ const DEFAULT_SCHEMA = "spec-driven";
 export interface CreateChangeOptions {
 	/** The workflow schema to use (default: 'spec-driven') */
 	schema?: string;
-	/** Optional execution variant for stricter workflows */
+	/** Optional execution variant; defaults to solidspec when omitted */
 	variant?: StrictWorkflowVariant;
 	/** Optional SolidSpec branch override */
 	branch?: string;
@@ -42,7 +43,7 @@ export interface CreateChangeOptions {
 export interface CreateChangeResult {
 	/** The schema that was actually used (resolved from options, config, or default) */
 	schema: string;
-	/** The variant that was actually used after resolving CLI and project defaults */
+	/** The variant that was actually used after resolving CLI, project, and hardcoded defaults */
 	variant?: StrictWorkflowVariant;
 }
 
@@ -182,7 +183,8 @@ export async function createChange(
 		}
 	}
 
-	const requestedVariant = options.variant ?? configVariant;
+	const requestedVariant =
+		options.variant ?? configVariant ?? DEFAULT_CHANGE_VARIANT;
 	const canonicalVariant = isStrictWorkflowVariant(requestedVariant)
 		? SOLIDSPEC_VARIANT
 		: undefined;

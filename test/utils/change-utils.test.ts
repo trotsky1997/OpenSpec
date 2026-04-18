@@ -137,7 +137,23 @@ describe("createChange", () => {
 	});
 
 	afterEach(async () => {
+		const parentDir = path.dirname(testDir);
+		const tempPrefix = `${path.basename(testDir)}-`;
+		const siblingEntries = await fs.readdir(parentDir).catch(() => []);
+		for (const entry of siblingEntries) {
+			if (entry.startsWith(tempPrefix)) {
+				await fs.rm(path.join(parentDir, entry), {
+					recursive: true,
+					force: true,
+				});
+			}
+		}
+
 		await fs.rm(testDir, { recursive: true, force: true });
+	});
+
+	beforeEach(() => {
+		initGitRepo(testDir);
 	});
 
 	describe("creates directory", () => {
@@ -149,7 +165,7 @@ describe("createChange", () => {
 			expect(stats.isDirectory()).toBe(true);
 		});
 
-		it("should create .openspec.yaml metadata file with default schema", async () => {
+		it("should create .openspec.yaml metadata file with default schema and variant", async () => {
 			await createChange(testDir, "add-auth");
 
 			const metaPath = path.join(
@@ -161,6 +177,8 @@ describe("createChange", () => {
 			);
 			const content = await fs.readFile(metaPath, "utf-8");
 			expect(content).toContain("schema: spec-driven");
+			expect(content).toContain("variant: solidspec");
+			expect(content).toContain("solidspec:");
 			expect(content).toMatch(/created: \d{4}-\d{2}-\d{2}/);
 		});
 
@@ -176,6 +194,7 @@ describe("createChange", () => {
 			);
 			const content = await fs.readFile(metaPath, "utf-8");
 			expect(content).toContain("schema: spec-driven");
+			expect(content).toContain("variant: solidspec");
 		});
 
 		it("should use the default variant from openspec/config.yaml", async () => {

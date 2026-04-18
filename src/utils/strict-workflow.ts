@@ -1,5 +1,6 @@
 export const SOLIDSPEC_VARIANT = "solidspec";
 export const OPENSPEX_VARIANT = "openspex";
+export const DEFAULT_CHANGE_VARIANT = SOLIDSPEC_VARIANT;
 
 export const STRICT_WORKFLOW_VARIANTS = [
 	SOLIDSPEC_VARIANT,

@@ -78,7 +78,7 @@ describe("InitCommand", () => {
 			).toBe(true);
 		});
 
-		it("should create config.yaml with default schema", async () => {
+		it("should create config.yaml with default schema and variant", async () => {
 			const initCommand = new InitCommand({ tools: "claude", force: true });
 
 			await initCommand.execute(testDir);
@@ -88,6 +88,7 @@ describe("InitCommand", () => {
 
 			const content = await fs.readFile(configPath, "utf-8");
 			expect(content).toContain("schema: spec-driven");
+			expect(content).toContain("variant: solidspec");
 		});
 
 		it("should create core profile skills for Claude Code by default", async () => {

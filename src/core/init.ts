@@ -50,6 +50,7 @@ import {
 } from "./profiles.js";
 import { getAvailableTools } from "./available-tools.js";
 import { migrateIfNeeded } from "./migration.js";
+import { DEFAULT_CHANGE_VARIANT } from "../utils/strict-workflow.js";
 
 const require = createRequire(import.meta.url);
 const { version: OPENSPEC_VERSION } = require("../../package.json");
@@ -694,7 +695,10 @@ export class InitCommand {
 		}
 
 		try {
-			const yamlContent = serializeConfig({ schema: DEFAULT_SCHEMA });
+			const yamlContent = serializeConfig({
+				schema: DEFAULT_SCHEMA,
+				variant: DEFAULT_CHANGE_VARIANT,
+			});
 			await FileSystemUtils.writeFile(configPath, yamlContent);
 			return "created";
 		} catch {
@@ -805,7 +809,9 @@ export class InitCommand {
 
 		// Config status
 		if (configStatus === "created") {
-			console.log(`Config: openspec/config.yaml (schema: ${DEFAULT_SCHEMA})`);
+			console.log(
+				`Config: openspec/config.yaml (schema: ${DEFAULT_SCHEMA}, variant: ${DEFAULT_CHANGE_VARIANT})`,
+			);
 		} else if (configStatus === "exists") {
 			// Show actual filename (config.yaml or config.yml)
 			const configYaml = path.join(

@@ -13,10 +13,10 @@ export function serializeConfig(config: Partial<ProjectConfig>): string {
 	lines.push(`schema: ${config.schema}`);
 	lines.push("");
 
-	// Default variant (optional)
-	lines.push("# Default change variant (optional)");
+	// Default variant (optional override; generated configs pin solidspec explicitly)
+	lines.push("# Default change variant (optional override)");
 	lines.push(
-		"# Set this if new changes should default to a strict workflow variant.",
+		"# Generated configs pin this to solidspec unless you intentionally change it.",
 	);
 	lines.push("# Example:");
 	lines.push("#   variant: solidspec");
