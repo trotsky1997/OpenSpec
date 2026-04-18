@@ -45,29 +45,79 @@ jobs:
         run: |
           set -euo pipefail
           VERSION=$(node -p "require('./package.json').version")
+          SHORT_SHA="${GITHUB_SHA::7}"
+          RELEASE_TAG="main-build-${SHORT_SHA}"
           TAR=$(npm pack --silent | tail -n 1)
           ASSET_NAME="fission-ai-openspec-main.tgz"
           mv "$TAR" "$ASSET_NAME"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           echo "asset_name=$ASSET_NAME" >> "$GITHUB_OUTPUT"
           echo "asset_path=$PWD/$ASSET_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Write release notes
         shell: bash
         run: |
-          cat > main-build-notes.md <<EOF
-          Rolling installable build from main.
+          set -euo pipefail
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          COMMIT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}"
+          UNIQUE_DOWNLOAD_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/download/${{ steps.pack.outputs.release_tag }}/${{ steps.pack.outputs.asset_name }}"
+          ROLLING_DOWNLOAD_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/download/main-build/${{ steps.pack.outputs.asset_name }}"
 
-          - Commit: `${{ github.sha }}`
-          - Version: `${{ steps.pack.outputs.version }}`
-          - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          cat > main-build-notes.md <<EOF
+          Installable build from main for commit ${{ steps.pack.outputs.short_sha }}.
+
+          - Commit: ${GITHUB_SHA}
+          - Commit URL: ${COMMIT_URL}
+          - Version: ${{ steps.pack.outputs.version }}
+          - Workflow run: ${RUN_URL}
 
           Install:
 
           curl -L -o fission-ai-openspec-main.tgz \
-            ${{ github.server_url }}/${{ github.repository }}/releases/download/main-build/${{ steps.pack.outputs.asset_name }}
+            ${UNIQUE_DOWNLOAD_URL}
           npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
           EOF
+
+          cat > main-build-rolling-notes.md <<EOF
+          Latest rolling installable build from main.
+
+          - Commit: ${GITHUB_SHA}
+          - Commit URL: ${COMMIT_URL}
+          - Version: ${{ steps.pack.outputs.version }}
+          - Workflow run: ${RUN_URL}
+
+          Install:
+
+          curl -L -o fission-ai-openspec-main.tgz \
+            ${ROLLING_DOWNLOAD_URL}
+          npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+          EOF
+
+      - name: Create or update per-commit prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view "${{ steps.pack.outputs.release_tag }}" >/dev/null 2>&1; then
+            gh release create "${{ steps.pack.outputs.release_tag }}" \
+              --title "OpenSpec main build ${{ steps.pack.outputs.short_sha }}" \
+              --prerelease \
+              --notes-file main-build-notes.md
+          else
+            gh release edit "${{ steps.pack.outputs.release_tag }}" \
+              --title "OpenSpec main build ${{ steps.pack.outputs.short_sha }}" \
+              --notes-file main-build-notes.md
+          fi
+
+      - name: Upload packaged asset to per-commit prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release upload "${{ steps.pack.outputs.release_tag }}" "${{ steps.pack.outputs.asset_path }}#${{ steps.pack.outputs.asset_name }}" --clobber
 
       - name: Create or update rolling prerelease
         env:
@@ -77,13 +127,13 @@ jobs:
           set -euo pipefail
           if ! gh release view main-build >/dev/null 2>&1; then
             gh release create main-build \
-              --title "OpenSpec main build" \
+              --title "OpenSpec main build (latest)" \
               --prerelease \
-              --notes-file main-build-notes.md
+              --notes-file main-build-rolling-notes.md
           else
             gh release edit main-build \
-              --title "OpenSpec main build" \
-              --notes-file main-build-notes.md
+              --title "OpenSpec main build (latest)" \
+              --notes-file main-build-rolling-notes.md
           fi
 
       - name: Upload packaged asset to rolling prerelease
