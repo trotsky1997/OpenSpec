@@ -118,7 +118,6 @@ If you want the expanded workflow (`/opsx:new`, `/opsx:continue`, `/opsx:ff`, `/
 → **[Multi-Language](docs/multi-language.md)**: multi-language support<br>
 → **[Customization](docs/customization.md)**: make it yours
 
-
 ## Why OpenSpec?
 
 AI coding assistants are powerful but unpredictable when requirements live only in chat history. OpenSpec adds a lightweight spec layer so you agree on what to build before any code is written.
@@ -142,6 +141,17 @@ AI coding assistants are powerful but unpredictable when requirements live only 
 
 ```bash
 npm install -g @fission-ai/openspec@latest
+```
+
+**Install the latest packaged `main` build from GitHub**
+
+If you want the current repository build before it lands on npm, download the
+rolling `main-build` release asset and install it locally:
+
+```bash
+curl -L -o fission-ai-openspec-main.tgz \
+  https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz
+npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
 ```
 
 **Refresh agent instructions**
@@ -195,8 +205,6 @@ We collect only command names and version to understand usage patterns. No argum
 See [MAINTAINERS.md](MAINTAINERS.md) for the list of core maintainers and advisors who help guide the project.
 
 </details>
-
-
 
 ## License
 

@@ -1,0 +1,101 @@
+name: Package main build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: package-main-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package-main-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: node build.js
+
+      - name: Verify packed CLI
+        run: node scripts/pack-version-check.mjs
+
+      - name: Pack npm tarball
+        id: pack
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          TAR=$(npm pack --silent | tail -n 1)
+          ASSET_NAME="fission-ai-openspec-main.tgz"
+          mv "$TAR" "$ASSET_NAME"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "asset_name=$ASSET_NAME" >> "$GITHUB_OUTPUT"
+          echo "asset_path=$PWD/$ASSET_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Write release notes
+        shell: bash
+        run: |
+          cat > main-build-notes.md <<EOF
+          Rolling installable build from main.
+
+          - Commit: `${{ github.sha }}`
+          - Version: `${{ steps.pack.outputs.version }}`
+          - Workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          Install:
+
+          curl -L -o fission-ai-openspec-main.tgz \
+            ${{ github.server_url }}/${{ github.repository }}/releases/download/main-build/${{ steps.pack.outputs.asset_name }}
+          npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+          EOF
+
+      - name: Create or update rolling prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! gh release view main-build >/dev/null 2>&1; then
+            gh release create main-build \
+              --title "OpenSpec main build" \
+              --prerelease \
+              --notes-file main-build-notes.md
+          else
+            gh release edit main-build \
+              --title "OpenSpec main build" \
+              --notes-file main-build-notes.md
+          fi
+
+      - name: Upload packaged asset to rolling prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release upload main-build "${{ steps.pack.outputs.asset_path }}#${{ steps.pack.outputs.asset_name }}" --clobber
+
+      - name: Upload workflow artifact copy
+        uses: actions/upload-artifact@v4
+        with:
+          name: openspec-main-build
+          path: ${{ steps.pack.outputs.asset_path }}
+          retention-days: 14

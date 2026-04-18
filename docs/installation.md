@@ -67,6 +67,20 @@ Or add to your development environment in `flake.nix`:
 openspec --version
 ```
 
+## Install the latest `main` build from GitHub
+
+If you need the latest packaged build from the repository before a registry
+release is cut, download the rolling `main-build` release asset and install it
+locally:
+
+```bash
+curl -L -o fission-ai-openspec-main.tgz \
+  https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz
+npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+```
+
+This asset is refreshed by GitHub Actions on every push to `main`.
+
 ## Next Steps
 
 After installing, initialize OpenSpec in your project:
