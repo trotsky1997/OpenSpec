@@ -4,6 +4,7 @@ import { promises as fs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { FileSystemUtils } from "../../src/utils/file-system.js";
 import {
 	getSolidSpecDisciplinePath,
 	getManagedFilesManifestPath,
@@ -206,7 +207,9 @@ describe("solidspec utilities", () => {
 		});
 
 		expect(metadata.branch).toBe("solidspec/openspex-change");
-		expect(metadata.repoRoot).toBe(testDir);
+		expect(metadata.repoRoot).toBe(
+			FileSystemUtils.canonicalizeExistingPath(testDir),
+		);
 		const branch = metadata.branch;
 		expect(branch).toBeDefined();
 		await expect(fs.stat(worktreePath)).resolves.toMatchObject({

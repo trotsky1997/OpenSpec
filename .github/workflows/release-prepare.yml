@@ -16,6 +16,9 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    env:
+      APP_ID: ${{ vars.APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
     steps:
       # Generate GitHub App token first - used for checkout and changesets
       # This allows git operations to trigger CI workflows on the version PR
@@ -23,11 +26,11 @@ jobs:
       # default workflow token when the app credentials are not configured.
       - name: Generate GitHub App Token
         id: app-token
-        if: vars.APP_ID != '' && secrets.APP_PRIVATE_KEY != ''
+        if: env.APP_ID != '' && env.APP_PRIVATE_KEY != ''
         uses: actions/create-github-app-token@v2
         with:
-          app-id: ${{ vars.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          app-id: ${{ env.APP_ID }}
+          private-key: ${{ env.APP_PRIVATE_KEY }}
 
       - uses: actions/checkout@v4
         with:
