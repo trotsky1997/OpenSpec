@@ -1,4 +1,4 @@
-import type { ProjectConfig } from './project-config.js';
+import type { ProjectConfig } from "./project-config.js";
 
 /**
  * Serialize config to YAML string with helpful comments.
@@ -7,33 +7,47 @@ import type { ProjectConfig } from './project-config.js';
  * @returns YAML string ready to write to file
  */
 export function serializeConfig(config: Partial<ProjectConfig>): string {
-  const lines: string[] = [];
+	const lines: string[] = [];
 
-  // Schema (required)
-  lines.push(`schema: ${config.schema}`);
-  lines.push('');
+	// Schema (required)
+	lines.push(`schema: ${config.schema}`);
+	lines.push("");
 
-  // Context section with comments
-  lines.push('# Project context (optional)');
-  lines.push('# This is shown to AI when creating artifacts.');
-  lines.push('# Add your tech stack, conventions, style guides, domain knowledge, etc.');
-  lines.push('# Example:');
-  lines.push('#   context: |');
-  lines.push('#     Tech stack: TypeScript, React, Node.js');
-  lines.push('#     We use conventional commits');
-  lines.push('#     Domain: e-commerce platform');
-  lines.push('');
+	// Default variant (optional)
+	lines.push("# Default change variant (optional)");
+	lines.push(
+		"# Set this if new changes should default to a strict workflow variant.",
+	);
+	lines.push("# Example:");
+	lines.push("#   variant: solidspec");
+	if (config.variant) {
+		lines.push(`variant: ${config.variant}`);
+		lines.push("");
+	}
 
-  // Rules section with comments
-  lines.push('# Per-artifact rules (optional)');
-  lines.push('# Add custom rules for specific artifacts.');
-  lines.push('# Example:');
-  lines.push('#   rules:');
-  lines.push('#     proposal:');
-  lines.push('#       - Keep proposals under 500 words');
-  lines.push('#       - Always include a "Non-goals" section');
-  lines.push('#     tasks:');
-  lines.push('#       - Break tasks into chunks of max 2 hours');
+	// Context section with comments
+	lines.push("# Project context (optional)");
+	lines.push("# This is shown to AI when creating artifacts.");
+	lines.push(
+		"# Add your tech stack, conventions, style guides, domain knowledge, etc.",
+	);
+	lines.push("# Example:");
+	lines.push("#   context: |");
+	lines.push("#     Tech stack: TypeScript, React, Node.js");
+	lines.push("#     We use conventional commits");
+	lines.push("#     Domain: e-commerce platform");
+	lines.push("");
 
-  return lines.join('\n') + '\n';
+	// Rules section with comments
+	lines.push("# Per-artifact rules (optional)");
+	lines.push("# Add custom rules for specific artifacts.");
+	lines.push("# Example:");
+	lines.push("#   rules:");
+	lines.push("#     proposal:");
+	lines.push("#       - Keep proposals under 500 words");
+	lines.push('#       - Always include a "Non-goals" section');
+	lines.push("#     tasks:");
+	lines.push("#       - Break tasks into chunks of max 2 hours");
+
+	return lines.join("\n") + "\n";
 }

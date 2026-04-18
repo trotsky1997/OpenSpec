@@ -178,6 +178,46 @@ describe("createChange", () => {
 			expect(content).toContain("schema: spec-driven");
 		});
 
+		it("should use the default variant from openspec/config.yaml", async () => {
+			initGitRepo(testDir);
+			const configDir = path.join(testDir, "openspec");
+			await fs.mkdir(configDir, { recursive: true });
+			await fs.writeFile(
+				path.join(configDir, "config.yaml"),
+				"schema: spec-driven\nvariant: solidspec\n",
+				"utf-8",
+			);
+
+			const result = await createChange(testDir, "add-auth");
+
+			expect(result).toEqual({
+				schema: "spec-driven",
+				variant: "solidspec",
+			});
+
+			const metaPath = path.join(
+				testDir,
+				"openspec",
+				"changes",
+				"add-auth",
+				".openspec.yaml",
+			);
+			const content = await fs.readFile(metaPath, "utf-8");
+			expect(content).toContain("variant: solidspec");
+			expect(content).toContain("solidspec:");
+
+			const disciplinePath = path.join(
+				testDir,
+				"openspec",
+				"changes",
+				"add-auth",
+				"discipline.yaml",
+			);
+			const discipline = await fs.readFile(disciplinePath, "utf-8");
+			expect(discipline).toContain("summary:");
+			expect(discipline).toContain("commands: []");
+		});
+
 		it("should persist OpenSpeX metadata and scaffold managed files", async () => {
 			initGitRepo(testDir);
 			const worktreePath = path.join(

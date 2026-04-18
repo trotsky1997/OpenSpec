@@ -42,6 +42,8 @@ export interface CreateChangeOptions {
 export interface CreateChangeResult {
 	/** The schema that was actually used (resolved from options, config, or default) */
 	schema: string;
+	/** The variant that was actually used after resolving CLI and project defaults */
+	variant?: StrictWorkflowVariant;
 }
 
 /**
@@ -164,6 +166,7 @@ export async function createChange(
 	}
 
 	// Determine schema: explicit option → project config → hardcoded default
+	let configVariant: StrictWorkflowVariant | undefined;
 	let schemaName: string;
 	if (options.schema) {
 		schemaName = options.schema;
@@ -172,11 +175,17 @@ export async function createChange(
 		try {
 			const config = readProjectConfig(projectRoot);
 			schemaName = config?.schema ?? DEFAULT_SCHEMA;
+			configVariant = config?.variant;
 		} catch {
 			// If config read fails, use default
 			schemaName = DEFAULT_SCHEMA;
 		}
 	}
+
+	const requestedVariant = options.variant ?? configVariant;
+	const canonicalVariant = isStrictWorkflowVariant(requestedVariant)
+		? SOLIDSPEC_VARIANT
+		: undefined;
 
 	// Validate the resolved schema
 	validateSchemaName(schemaName, projectRoot);
@@ -197,7 +206,7 @@ export async function createChange(
 	const metadata: ChangeMetadata = {
 		schema: schemaName,
 		created: today,
-		...(isStrictWorkflowVariant(options.variant)
+		...(canonicalVariant
 			? {
 					variant: SOLIDSPEC_VARIANT,
 					solidspec: setupSolidSpecWorkspace(projectRoot, name, {
@@ -212,17 +221,17 @@ export async function createChange(
 
 	writeChangeMetadata(changeDir, metadata, projectRoot);
 
-	if (isStrictWorkflowVariant(options.variant)) {
+	if (canonicalVariant) {
 		scaffoldSolidSpecDisciplineManifest(changeDir);
 	}
 
 	if (
-		isStrictWorkflowVariant(options.variant) &&
+		canonicalVariant &&
 		options.managedFiles &&
 		options.managedFiles.length > 0
 	) {
 		scaffoldManagedFiles(projectRoot, name, changeDir, options.managedFiles);
 	}
 
-	return { schema: schemaName };
+	return { schema: schemaName, variant: canonicalVariant };
 }
