@@ -10,10 +10,12 @@ export function getVerifyChangeSkillTemplate(): SkillTemplate {
 	return {
 		name: "openspec-verify-change",
 		description:
-			"Verify implementation matches change artifacts. Use when the user wants to validate that implementation is complete, correct, and coherent before archiving.",
-		instructions: `Verify that an implementation matches the change artifacts (specs, tasks, design).
+			"Internal helper for verify-style validation across completeness, correctness, and coherence. Use from apply or other workflows rather than exposing it directly to users.",
+		instructions: `Run an internal verification pass against the change artifacts (specs, tasks, design).
 
-**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+This helper is not a public user workflow. Other workflows such as apply call it when they need readiness, correctness, or closure-style validation.
+
+**Input**: Optionally specify a change name and, when useful, a task or feature scope for deeper analysis. If the change is omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
@@ -42,6 +44,11 @@ export function getVerifyChangeSkillTemplate(): SkillTemplate {
    \`\`\`
 
    This returns the change directory and \`contextFiles\` (artifact ID -> array of concrete file paths). Read all available artifacts from \`contextFiles\`.
+
+   **Scoped deep analysis (internal inspect helper)**:
+   - If the user asks for a deep pass on one task or one feature, resolve that scope from \`tasks.md\` or the change specs
+   - Reuse the internal inspect helper to gather a scope-centered evidence report for that target
+   - Fold that scoped evidence back into the verify report instead of sending the user to \`/opsx:inspect\`
 
 4. **Initialize verification report structure**
 
@@ -72,10 +79,11 @@ export function getVerifyChangeSkillTemplate(): SkillTemplate {
        - Add CRITICAL issue: "Requirement not found: <requirement name>"
        - Recommendation: "Implement requirement X: <description>"
 
-   **OpenSpeX Closure Preconditions**:
-   - If this is an OpenSpeX change:
+   **SolidSpec Closure Preconditions**:
+   - If this is a SolidSpec change:
      - Verify branch and worktree metadata still exist and match repository state
      - Verify PR reference and merge commit evidence are recorded before declaring the change completion-ready
+     - Verify the discipline manifest exists and declares the required validation commands for the change
      - Verify each managed source or test file still has its required change-owned delta, and flag legacy-only delta layouts as migration blockers
      - Use git diff or equivalent evidence to flag changed files that are not listed in the managed-file inventory as CRITICAL
 
@@ -98,6 +106,11 @@ export function getVerifyChangeSkillTemplate(): SkillTemplate {
        - Add WARNING: "Scenario not covered: <scenario name>"
        - Recommendation: "Add test or implementation for scenario: <description>"
 
+   **Scoped deep analysis**:
+   - If a specific task or feature scope is in play, run the internal inspect-style scoped pass for that target
+   - Keep the resulting evidence scope-centered, then fold the findings back into the overall verify report
+   - Do not treat this as a separate public workflow
+
 7. **Verify Coherence**
 
    **Design Adherence**:
@@ -116,8 +129,13 @@ export function getVerifyChangeSkillTemplate(): SkillTemplate {
      - Add SUGGESTION: "Code pattern deviation: <details>"
      - Recommendation: "Consider following project pattern: <example>"
 
-   **OpenSpeX merge-back**:
-   - If this is an OpenSpeX change and no CRITICAL issues remain for a managed file:
+   **Discipline validation gates**:
+   - If this is a SolidSpec change, run each validation command declared in the discipline manifest
+   - Treat failures from commands such as \`ruff\`, \`ty\`, \`pyright\`, \`pnpm lint\`, or \`pnpm typecheck\` as CRITICAL issues
+   - If governed code appears to violate declared model/type discipline without an explicit waiver, report that as a CRITICAL issue with the most relevant files
+
+   **SolidSpec merge-back**:
+   - If this is a SolidSpec change and no CRITICAL issues remain for a managed file:
      - Merge the accepted change-owned delta into that file's canonical shadow impl-spec
      - Append the matching changelog entry
      - If either step fails, convert the failure into a CRITICAL issue and do not declare the change ready
@@ -165,7 +183,8 @@ export function getVerifyChangeSkillTemplate(): SkillTemplate {
 - **Coherence**: Look for glaring inconsistencies, don't nitpick style
 - **False Positives**: When uncertain, prefer SUGGESTION over WARNING, WARNING over CRITICAL
 - **Actionability**: Every issue must have a specific recommendation with file/line references where applicable
-- **OpenSpeX strictness**: Apply readiness does not imply verify readiness; OpenSpeX verify must still prove git evidence, managed-file scope, and shadow-spec closure
+- **SolidSpec strictness**: Apply readiness does not imply verify readiness; SolidSpec verify must still prove git evidence, managed-file scope, and shadow-spec closure
+- **SolidSpec discipline**: SolidSpec verify must also prove declared validation commands pass and that governed code follows the declared model/type discipline or recorded waivers
 
 **Graceful Degradation**
 
@@ -190,14 +209,14 @@ Use clear markdown with:
 
 export function getOpsxVerifyCommandTemplate(): CommandTemplate {
 	return {
-		name: "OPSX: Verify",
+		name: "OPSX: Verify (Internal)",
 		description:
-			"Verify implementation matches change artifacts before archiving",
+			"Internal helper for verify-style validation used by other workflows",
 		category: "Workflow",
 		tags: ["workflow", "verify", "experimental"],
 		content: `Verify that an implementation matches the change artifacts (specs, tasks, design).
 
-**Input**: Optionally specify a change name after \`/opsx:verify\` (e.g., \`/opsx:verify add-auth\`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**Input**: Optionally specify a change name after \`/opsx:verify\` and, when useful, a task or feature scope for deeper analysis. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
@@ -226,6 +245,11 @@ export function getOpsxVerifyCommandTemplate(): CommandTemplate {
    \`\`\`
 
    This returns the change directory and \`contextFiles\` (artifact ID -> array of concrete file paths). Read all available artifacts from \`contextFiles\`.
+
+   **Scoped deep analysis (internal inspect helper)**:
+   - If the user asks for a deep pass on one task or one feature, resolve that scope from \`tasks.md\` or the change specs
+   - Reuse the internal inspect helper to gather a scope-centered evidence report for that target
+   - Fold that scoped evidence back into the verify report instead of sending the user to \`/opsx:inspect\`
 
 4. **Initialize verification report structure**
 
@@ -256,8 +280,8 @@ export function getOpsxVerifyCommandTemplate(): CommandTemplate {
        - Add CRITICAL issue: "Requirement not found: <requirement name>"
        - Recommendation: "Implement requirement X: <description>"
 
-   **OpenSpeX Closure Preconditions**:
-   - If this is an OpenSpeX change:
+   **SolidSpec Closure Preconditions**:
+   - If this is a SolidSpec change:
      - Verify branch and worktree metadata still exist and match repository state
      - Verify PR reference and merge commit evidence are recorded before declaring the change completion-ready
      - Verify each managed source or test file still has its required change-owned delta, and flag legacy-only delta layouts as migration blockers
@@ -300,8 +324,8 @@ export function getOpsxVerifyCommandTemplate(): CommandTemplate {
      - Add SUGGESTION: "Code pattern deviation: <details>"
      - Recommendation: "Consider following project pattern: <example>"
 
-   **OpenSpeX merge-back**:
-   - If this is an OpenSpeX change and no CRITICAL issues remain for a managed file:
+   **SolidSpec merge-back**:
+   - If this is a SolidSpec change and no CRITICAL issues remain for a managed file:
      - Merge the accepted change-owned delta into that file's canonical shadow impl-spec
      - Append the matching changelog entry
      - If either step fails, convert the failure into a CRITICAL issue and do not declare the change ready
@@ -349,7 +373,7 @@ export function getOpsxVerifyCommandTemplate(): CommandTemplate {
 - **Coherence**: Look for glaring inconsistencies, don't nitpick style
 - **False Positives**: When uncertain, prefer SUGGESTION over WARNING, WARNING over CRITICAL
 - **Actionability**: Every issue must have a specific recommendation with file/line references where applicable
-- **OpenSpeX strictness**: Apply readiness does not imply verify readiness; OpenSpeX verify must still prove git evidence, managed-file scope, and shadow-spec closure
+- **SolidSpec strictness**: Apply readiness does not imply verify readiness; SolidSpec verify must still prove git evidence, managed-file scope, and shadow-spec closure
 
 **Graceful Degradation**
 

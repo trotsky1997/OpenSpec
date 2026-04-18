@@ -7,6 +7,7 @@
 import ora from "ora";
 import path from "path";
 import { createChange, validateChangeName } from "../../utils/change-utils.js";
+import type { StrictWorkflowVariant } from "../../utils/strict-workflow.js";
 import { validateSchemaExists } from "./shared.js";
 
 // -----------------------------------------------------------------------------
@@ -16,7 +17,7 @@ import { validateSchemaExists } from "./shared.js";
 export interface NewChangeOptions {
 	description?: string;
 	schema?: string;
-	variant?: "openspex";
+	variant?: StrictWorkflowVariant;
 	branch?: string;
 	worktree?: string;
 	pr?: string;

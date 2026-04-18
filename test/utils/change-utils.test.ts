@@ -199,8 +199,9 @@ describe("createChange", () => {
 				".openspec.yaml",
 			);
 			const content = await fs.readFile(metaPath, "utf-8");
-			expect(content).toContain("variant: openspex");
-			expect(content).toContain("branch: openspex/add-auth");
+			expect(content).toContain("variant: solidspec");
+			expect(content).toContain("solidspec:");
+			expect(content).toContain("branch: solidspec/add-auth");
 
 			const manifestPath = path.join(
 				testDir,
@@ -215,6 +216,17 @@ describe("createChange", () => {
 			expect(manifest).toContain(
 				"delta: openspec/changes/add-auth/shadow-deltas/src/app.ts.delta.md",
 			);
+
+			const disciplinePath = path.join(
+				testDir,
+				"openspec",
+				"changes",
+				"add-auth",
+				"discipline.yaml",
+			);
+			const discipline = await fs.readFile(disciplinePath, "utf-8");
+			expect(discipline).toContain("summary:");
+			expect(discipline).toContain("commands: []");
 
 			await fs.rm(worktreePath, { recursive: true, force: true });
 		});

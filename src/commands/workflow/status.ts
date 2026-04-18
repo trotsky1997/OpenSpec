@@ -11,6 +11,7 @@ import {
 	formatChangeStatus,
 	type ChangeStatus,
 } from "../../core/artifact-graph/index.js";
+import { SOLIDSPEC_DISPLAY_NAME } from "../../utils/strict-workflow.js";
 import {
 	validateChangeExists,
 	validateSchemaExists,
@@ -115,7 +116,7 @@ export function printStatusText(status: ChangeStatus): void {
 	}
 
 	if (status.readinessIssues && status.readinessIssues.length > 0) {
-		console.log(chalk.yellow("OpenSpeX readiness issues:"));
+		console.log(chalk.yellow(`${SOLIDSPEC_DISPLAY_NAME} readiness issues:`));
 		for (const issue of status.readinessIssues) {
 			console.log(`- ${issue}`);
 		}

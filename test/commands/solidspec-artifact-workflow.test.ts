@@ -6,12 +6,12 @@ import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { runCLI } from "../helpers/run-cli.js";
 
-describe("OpenSpeX artifact workflow", () => {
+describe("SolidSpec artifact workflow", () => {
 	let tempDir: string;
 	let worktreePaths: string[];
 
 	beforeEach(async () => {
-		tempDir = path.join(os.tmpdir(), `openspec-openspex-cli-${randomUUID()}`);
+		tempDir = path.join(os.tmpdir(), `openspec-solidspec-cli-${randomUUID()}`);
 		worktreePaths = [];
 		await fs.mkdir(path.join(tempDir, "openspec", "changes"), {
 			recursive: true,
@@ -61,6 +61,26 @@ describe("OpenSpeX artifact workflow", () => {
 		);
 	}
 
+	async function configureSolidSpecDiscipline(
+		changeDir: string,
+		commands: string[] = ["pnpm lint", "pnpm typecheck"],
+	): Promise<void> {
+		await fs.writeFile(
+			path.join(changeDir, "discipline.yaml"),
+			`version: 1
+modelPolicy:
+  strict: true
+  summary: Use explicit typed models and stable interfaces.
+  rules:
+    - Prefer explicit typed models at important boundaries.
+validation:
+  commands:
+${commands.map((command) => `    - ${command}`).join("\n")}
+waivers: []
+`,
+		);
+	}
+
 	it("rejects OpenSpeX change creation outside a git repository", async () => {
 		const worktreePath = path.join(
 			os.tmpdir(),
@@ -83,7 +103,7 @@ describe("OpenSpeX artifact workflow", () => {
 
 		expect(result.exitCode).toBe(1);
 		expect(result.stdout + result.stderr).toContain(
-			"OpenSpeX requires a git repository",
+			"SolidSpec requires a git repository",
 		);
 	});
 
@@ -123,8 +143,9 @@ describe("OpenSpeX artifact workflow", () => {
 			),
 			"utf-8",
 		);
-		expect(metadata).toContain("variant: openspex");
-		expect(metadata).toContain("branch: openspex/openspex-managed");
+		expect(metadata).toContain("variant: solidspec");
+		expect(metadata).toContain("solidspec:");
+		expect(metadata).toContain("branch: solidspec/openspex-managed");
 		expect(metadata).toContain("worktree:");
 
 		const manifest = await fs.readFile(
@@ -139,6 +160,18 @@ describe("OpenSpeX artifact workflow", () => {
 		);
 		expect(manifest).toContain("path: src/app.ts");
 		expect(manifest).toContain("path: test/app.test.ts");
+
+		const discipline = await fs.readFile(
+			path.join(
+				tempDir,
+				"openspec",
+				"changes",
+				"openspex-managed",
+				"discipline.yaml",
+			),
+			"utf-8",
+		);
+		expect(discipline).toContain("commands: []");
 
 		await expect(
 			fs.stat(
@@ -198,6 +231,7 @@ describe("OpenSpeX artifact workflow", () => {
 			"openspex-ready",
 		);
 		await completeSpecDrivenArtifacts(changeDir);
+		await configureSolidSpecDiscipline(changeDir);
 
 		const applyReady = await runCLI(
 			["instructions", "apply", "--change", "openspex-ready", "--json"],
@@ -205,13 +239,13 @@ describe("OpenSpeX artifact workflow", () => {
 		);
 		expect(applyReady.exitCode).toBe(0);
 		const applyJson = JSON.parse(applyReady.stdout);
-		expect(applyJson.variant).toBe("openspex");
+		expect(applyJson.variant).toBe("solidspec");
 		expect(applyJson.state).toBe("ready");
 		expect(applyJson.managedFiles).toEqual(["src/app.ts"]);
-		expect(applyJson.contextFiles.openspexManagedFiles).toHaveLength(1);
-		expect(applyJson.contextFiles.openspexShadowSpecs).toHaveLength(1);
-		expect(applyJson.contextFiles.openspexDeltas).toHaveLength(1);
-		expect(applyJson.contextFiles.openspexLegacyDeltas).toBeUndefined();
+		expect(applyJson.contextFiles.solidspecManagedFiles).toHaveLength(1);
+		expect(applyJson.contextFiles.solidspecShadowSpecs).toHaveLength(1);
+		expect(applyJson.contextFiles.solidspecDeltas).toHaveLength(1);
+		expect(applyJson.contextFiles.solidspecLegacyDeltas).toBeUndefined();
 
 		const changeOwnedDelta = path.join(
 			tempDir,
@@ -244,7 +278,7 @@ describe("OpenSpeX artifact workflow", () => {
 		);
 		expect(statusResult.exitCode).toBe(0);
 		const statusJson = JSON.parse(statusResult.stdout);
-		expect(statusJson.variant).toBe("openspex");
+		expect(statusJson.variant).toBe("solidspec");
 		expect(
 			statusJson.readinessIssues.some((issue: string) =>
 				issue.includes("Legacy OpenSpeX delta must move for src/app.ts"),
@@ -263,7 +297,54 @@ describe("OpenSpeX artifact workflow", () => {
 				issue.includes("Legacy OpenSpeX delta must move for src/app.ts"),
 			),
 		).toBe(true);
-		expect(blockedApplyJson.contextFiles.openspexLegacyDeltas).toHaveLength(1);
+		expect(blockedApplyJson.contextFiles.solidspecLegacyDeltas).toHaveLength(1);
+	}, 20000);
+
+	it("blocks apply when discipline commands are not declared", async () => {
+		initGitRepo(tempDir);
+		const worktreePath = path.join(
+			os.tmpdir(),
+			`openspec-worktree-${randomUUID()}`,
+		);
+		worktreePaths.push(worktreePath);
+
+		const createResult = await runCLI(
+			[
+				"new",
+				"change",
+				"openspex-discipline",
+				"--variant",
+				"openspex",
+				"--worktree",
+				worktreePath,
+				"--manage-file",
+				"src/app.ts",
+			],
+			{ cwd: tempDir, timeoutMs: 60000 },
+		);
+		expect(createResult.exitCode).toBe(0);
+
+		const changeDir = path.join(
+			tempDir,
+			"openspec",
+			"changes",
+			"openspex-discipline",
+		);
+		await completeSpecDrivenArtifacts(changeDir);
+
+		const blockedApply = await runCLI(
+			["instructions", "apply", "--change", "openspex-discipline", "--json"],
+			{ cwd: tempDir, timeoutMs: 60000 },
+		);
+		expect(blockedApply.exitCode).toBe(0);
+		const blockedApplyJson = JSON.parse(blockedApply.stdout);
+		expect(blockedApplyJson.state).toBe("blocked");
+		expect(
+			blockedApplyJson.blockingIssues.some((issue: string) =>
+				issue.includes("validation command declarations are missing"),
+			),
+		).toBe(true);
+		expect(blockedApplyJson.contextFiles.solidspecDiscipline).toHaveLength(1);
 	}, 20000);
 
 	it("blocks apply when the change-owned delta is missing and no legacy delta exists", async () => {
@@ -320,9 +401,9 @@ describe("OpenSpeX artifact workflow", () => {
 		expect(blockedApplyJson.state).toBe("blocked");
 		expect(
 			blockedApplyJson.blockingIssues.some((issue: string) =>
-				issue.includes("Missing OpenSpeX delta for src/app.ts"),
+				issue.includes("Missing SolidSpec delta for src/app.ts"),
 			),
 		).toBe(true);
-		expect(blockedApplyJson.contextFiles.openspexLegacyDeltas).toBeUndefined();
+		expect(blockedApplyJson.contextFiles.solidspecLegacyDeltas).toBeUndefined();
 	}, 20000);
 });

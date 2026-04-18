@@ -1,7 +1,7 @@
 /**
  * Init Command
  *
- * Sets up OpenSpec with Agent Skills and /opsx:* slash commands.
+ * Sets up OpenSpec with Agent Skills and /opsx:* plus /ssx:* slash commands.
  * This is the unified setup command that replaces both the old init and experimental commands.
  */
 
@@ -19,6 +19,7 @@ import { serializeConfig } from "./config-prompts.js";
 import {
 	generateCommands,
 	CommandAdapterRegistry,
+	COMMAND_NAMESPACES,
 } from "./command-generation/index.js";
 import {
 	detectLegacyArtifacts,
@@ -582,7 +583,7 @@ export class InitCommand {
 			? getSkillTemplates(workflows)
 			: [];
 		const commandContents = shouldGenerateCommands
-			? getCommandContents(workflows)
+			? getCommandContents(workflows, COMMAND_NAMESPACES)
 			: [];
 
 		// Process each tool
@@ -756,7 +757,9 @@ export class InitCommand {
 			const skillCount =
 				delivery !== "commands" ? getSkillTemplates(workflows).length : 0;
 			const commandCount =
-				delivery !== "skills" ? getCommandContents(workflows).length : 0;
+				delivery !== "skills"
+					? getCommandContents(workflows, COMMAND_NAMESPACES).length
+					: 0;
 			if (skillCount > 0 && commandCount > 0) {
 				console.log(
 					`${skillCount} skills and ${commandCount} commands in ${toolDirs}/`,
@@ -831,10 +834,14 @@ export class InitCommand {
 		console.log();
 		if (activeWorkflows.includes("propose")) {
 			console.log(chalk.bold("Getting started:"));
-			console.log('  Start your first change: /opsx:propose "your idea"');
+			console.log(
+				'  Start your first change: /opsx:propose or /ssx:propose "your idea"',
+			);
 		} else if (activeWorkflows.includes("new")) {
 			console.log(chalk.bold("Getting started:"));
-			console.log('  Start your first change: /opsx:new "your idea"');
+			console.log(
+				'  Start your first change: /opsx:new or /ssx:new "your idea"',
+			);
 		} else {
 			console.log(
 				"Done. Run 'openspec config profile' to configure your workflows.",
@@ -900,18 +907,20 @@ export class InitCommand {
 		if (!adapter) return 0;
 
 		for (const workflow of ALL_WORKFLOWS) {
-			const cmdPath = adapter.getFilePath(workflow);
-			const fullPath = path.isAbsolute(cmdPath)
-				? cmdPath
-				: path.join(projectPath, cmdPath);
+			for (const namespace of COMMAND_NAMESPACES) {
+				const cmdPath = adapter.getFilePath(workflow, namespace);
+				const fullPath = path.isAbsolute(cmdPath)
+					? cmdPath
+					: path.join(projectPath, cmdPath);
 
-			try {
-				if (fs.existsSync(fullPath)) {
-					await fs.promises.unlink(fullPath);
-					removed++;
+				try {
+					if (fs.existsSync(fullPath)) {
+						await fs.promises.unlink(fullPath);
+						removed++;
+					}
+				} catch {
+					// Ignore errors
 				}
-			} catch {
-				// Ignore errors
 			}
 		}
 

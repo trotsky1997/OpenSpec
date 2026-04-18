@@ -159,3 +159,5 @@ opencode.json
 
 # Bob
 .bob/
+# CocoIndex Code (ccc)
+/.cocoindex_code/

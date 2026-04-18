@@ -9,7 +9,7 @@
 
 import os from 'os';
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 
 /**
  * Returns the Codex home directory.
@@ -28,8 +28,8 @@ function getCodexHome(): string {
 export const codexAdapter: ToolCommandAdapter = {
   toolId: 'codex',
 
-  getFilePath(commandId: string): string {
-    return path.join(getCodexHome(), 'prompts', `opsx-${commandId}.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join(getCodexHome(), 'prompts', `${namespace}-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {

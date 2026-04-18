@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 import { transformToHyphenCommands } from '../../../utils/command-references.js';
 
 /**
@@ -32,13 +32,15 @@ function escapeYamlValue(value: string): string {
 export const bobAdapter: ToolCommandAdapter = {
   toolId: 'bob',
 
-  getFilePath(commandId: string): string {
-    return path.join('.bob', 'commands', `opsx-${commandId}.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.bob', 'commands', `${namespace}-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {
+    const namespace = content.namespace ?? DEFAULT_COMMAND_NAMESPACE;
+
     // Transform command references from colon to hyphen format for Bob
-    const transformedBody = transformToHyphenCommands(content.body);
+    const transformedBody = transformToHyphenCommands(content.body, namespace);
 
     return `---
 description: ${escapeYamlValue(content.description)}

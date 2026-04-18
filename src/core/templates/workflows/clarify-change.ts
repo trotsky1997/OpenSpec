@@ -64,8 +64,7 @@ export function getClarifyChangeSkillTemplate(): SkillTemplate {
 
    Good next-step recommendations include:
    - \`/opsx:propose\` when the idea is clear enough to turn into artifacts
-   - \`/opsx:inspect\` when one task or feature needs deeper implementation analysis
-   - \`/opsx:verify\` when the user really wants readiness validation
+   - \`/opsx:apply\` when the user wants implementation-time validation or one task/feature needs deeper implementation analysis
    - another \`/opsx:clarify\` round when key uncertainty remains
 
 **Output Format**
@@ -166,8 +165,7 @@ export function getOpsxClarifyCommandTemplate(): CommandTemplate {
 
    Good next-step recommendations include:
    - \`/opsx:propose\` when the idea is clear enough to turn into artifacts
-   - \`/opsx:inspect\` when one task or feature needs deeper implementation analysis
-   - \`/opsx:verify\` when the user really wants readiness validation
+   - \`/opsx:apply\` when the user wants implementation-time validation or one task/feature needs deeper implementation analysis
    - another \`/opsx:clarify\` round when key uncertainty remains
 
 **Output Format**

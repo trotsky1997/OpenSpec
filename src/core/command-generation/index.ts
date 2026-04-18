@@ -18,16 +18,25 @@
 
 // Types
 export type {
-  CommandContent,
-  ToolCommandAdapter,
-  GeneratedCommand,
-} from './types.js';
+	CommandContent,
+	CommandNamespace,
+	ToolCommandAdapter,
+	GeneratedCommand,
+} from "./types.js";
+export {
+	DEFAULT_COMMAND_NAMESPACE,
+	COMMAND_NAMESPACES,
+} from "./types.js";
 
 // Registry
-export { CommandAdapterRegistry } from './registry.js';
+export { CommandAdapterRegistry } from "./registry.js";
 
 // Generator functions
-export { generateCommand, generateCommands } from './generator.js';
+export { generateCommand, generateCommands } from "./generator.js";
 
 // Adapters (for direct access if needed)
-export { claudeAdapter, cursorAdapter, windsurfAdapter } from './adapters/index.js';
+export {
+	claudeAdapter,
+	cursorAdapter,
+	windsurfAdapter,
+} from "./adapters/index.js";

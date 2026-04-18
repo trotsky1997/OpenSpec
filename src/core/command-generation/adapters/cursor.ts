@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 
 /**
  * Escapes a string value for safe YAML output.
@@ -31,14 +31,16 @@ function escapeYamlValue(value: string): string {
 export const cursorAdapter: ToolCommandAdapter = {
   toolId: 'cursor',
 
-  getFilePath(commandId: string): string {
-    return path.join('.cursor', 'commands', `opsx-${commandId}.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.cursor', 'commands', `${namespace}-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {
+    const namespace = content.namespace ?? DEFAULT_COMMAND_NAMESPACE;
+
     return `---
-name: /opsx-${content.id}
-id: opsx-${content.id}
+name: /${namespace}-${content.id}
+id: ${namespace}-${content.id}
 category: ${escapeYamlValue(content.category)}
 description: ${escapeYamlValue(content.description)}
 ---

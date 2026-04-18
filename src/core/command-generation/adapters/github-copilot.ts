@@ -5,7 +5,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 
 /**
  * GitHub Copilot adapter for command generation.
@@ -15,8 +15,8 @@ import type { CommandContent, ToolCommandAdapter } from '../types.js';
 export const githubCopilotAdapter: ToolCommandAdapter = {
   toolId: 'github-copilot',
 
-  getFilePath(commandId: string): string {
-    return path.join('.github', 'prompts', `opsx-${commandId}.prompt.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.github', 'prompts', `${namespace}-${commandId}.prompt.md`);
   },
 
   formatFile(content: CommandContent): string {

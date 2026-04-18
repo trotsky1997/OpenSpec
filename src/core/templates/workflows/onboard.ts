@@ -494,10 +494,9 @@ This same rhythm works for any size change—a small fix or a major feature.
  | \`/opsx:continue\` | Continue working on an existing change                   |
  | \`/opsx:ff\`       | Fast-forward: create all artifacts at once               |
  | \`/opsx:clarify\`  | Interactively clarify ambiguous scope or decisions       |
- | \`/opsx:inspect\`  | Deeply inspect one task or feature inside a change       |
- | \`/opsx:verify\`   | Verify implementation matches artifacts                  |
+ | \`/opsx:apply\`    | Implement tasks and run validation during the apply loop |
 
-Need stricter git-governed execution? Create the change with \`openspec new change <name> --variant openspex\` and add \`--manage-file <repo-relative-path>\` for any governed source or test files.
+Need stricter git-governed and code-disciplined execution? Create the change with \`openspec new change <name> --variant solidspec\`, add \`--manage-file <repo-relative-path>\` for governed source or test files, and configure the generated \`discipline.yaml\` before formal implementation. Legacy \`openspex\` still works as a compatibility alias.
 
 ---
 
@@ -551,10 +550,9 @@ If the user says they just want to see the commands or skip the tutorial:
  | \`/opsx:continue <name>\` | Continue an existing change         |
  | \`/opsx:ff <name>\`       | Fast-forward: all artifacts at once |
  | \`/opsx:clarify <name>\`  | Clarify one change context          |
- | \`/opsx:inspect <name>\`  | Inspect one task or feature deeply  |
- | \`/opsx:verify <name>\`   | Verify implementation               |
+ | \`/opsx:apply <name>\`    | Implement tasks and run validation during apply |
 
-For the stricter OpenSpeX workflow, use \`openspec new change <name> --variant openspex\` and add \`--manage-file <repo-relative-path>\` for governed source or test files.
+For the stricter SolidSpec workflow, use \`openspec new change <name> --variant solidspec\`, add \`--manage-file <repo-relative-path>\` for governed source or test files, and configure the generated \`discipline.yaml\` before formal implementation. Legacy \`openspex\` remains accepted.
 
 Try \`/opsx:propose\` to start your first change.
 \`\`\`

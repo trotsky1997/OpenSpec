@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 import { transformToHyphenCommands } from '../../../utils/command-references.js';
 
 const PI_INPUT_HEADING = /^\*\*Input\*\*:[^\n]*$/m;
@@ -49,13 +49,15 @@ function escapeYamlValue(value: string): string {
 export const piAdapter: ToolCommandAdapter = {
   toolId: 'pi',
 
-  getFilePath(commandId: string): string {
-    return path.join('.pi', 'prompts', `opsx-${commandId}.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.pi', 'prompts', `${namespace}-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {
+    const namespace = content.namespace ?? DEFAULT_COMMAND_NAMESPACE;
+
     // Transform /opsx: references to /opsx- and inject $@ for template args
-    const transformedBody = transformToHyphenCommands(content.body);
+    const transformedBody = transformToHyphenCommands(content.body, namespace);
 
     return `---
 description: ${escapeYamlValue(content.description)}

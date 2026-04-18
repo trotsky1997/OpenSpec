@@ -610,14 +610,17 @@ newCmd
 		"--schema <name>",
 		`Workflow schema to use (default: ${DEFAULT_SCHEMA})`,
 	)
-	.option("--variant <name>", "Execution variant to use (currently: openspex)")
-	.option("--branch <name>", "OpenSpeX branch name override")
-	.option("--worktree <path>", "OpenSpeX worktree path override")
-	.option("--pr <ref>", "OpenSpeX pull request reference or URL")
-	.option("--merge-commit <sha>", "OpenSpeX merge commit SHA")
+	.option(
+		"--variant <name>",
+		"Execution variant to use (currently: solidspec; legacy: openspex)",
+	)
+	.option("--branch <name>", "SolidSpec branch name override")
+	.option("--worktree <path>", "SolidSpec worktree path override")
+	.option("--pr <ref>", "SolidSpec pull request reference or URL")
+	.option("--merge-commit <sha>", "SolidSpec merge commit SHA")
 	.option(
 		"--manage-file <path>",
-		"Repo-relative file to add to the OpenSpeX managed-file inventory",
+		"Repo-relative file to add to the SolidSpec managed-file inventory",
 		(value: string, previous: string[] = []) => [...previous, value],
 		[],
 	)

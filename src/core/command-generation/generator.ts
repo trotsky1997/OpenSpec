@@ -4,7 +4,11 @@
  * Functions for generating command files using tool adapters.
  */
 
-import type { CommandContent, ToolCommandAdapter, GeneratedCommand } from './types.js';
+import type {
+	CommandContent,
+	ToolCommandAdapter,
+	GeneratedCommand,
+} from "./types.js";
 
 /**
  * Generate a single command file using the provided adapter.
@@ -13,13 +17,13 @@ import type { CommandContent, ToolCommandAdapter, GeneratedCommand } from './typ
  * @returns Generated command with path and file content
  */
 export function generateCommand(
-  content: CommandContent,
-  adapter: ToolCommandAdapter
+	content: CommandContent,
+	adapter: ToolCommandAdapter,
 ): GeneratedCommand {
-  return {
-    path: adapter.getFilePath(content.id),
-    fileContent: adapter.formatFile(content),
-  };
+	return {
+		path: adapter.getFilePath(content.id, content.namespace),
+		fileContent: adapter.formatFile(content),
+	};
 }
 
 /**
@@ -29,8 +33,8 @@ export function generateCommand(
  * @returns Array of generated commands with paths and file contents
  */
 export function generateCommands(
-  contents: CommandContent[],
-  adapter: ToolCommandAdapter
+	contents: CommandContent[],
+	adapter: ToolCommandAdapter,
 ): GeneratedCommand[] {
-  return contents.map((content) => generateCommand(content, adapter));
+	return contents.map((content) => generateCommand(content, adapter));
 }

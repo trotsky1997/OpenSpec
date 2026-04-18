@@ -278,31 +278,40 @@ The setup command SHALL display clear output about what was generated.
 
 ### Requirement: OpenSpeX-aware change scaffolding
 
-The artifact workflow SHALL support creating and tracking OpenSpeX changes with
-explicit git-governance metadata.
+The artifact workflow SHALL treat `SolidSpec` as the canonical strict-workflow
+identifier in generated runtime surfaces while still accepting legacy
+`openspex` inputs.
 
-#### Scenario: Create an OpenSpeX change
+#### Scenario: Canonical strict-workflow metadata uses SolidSpec names
 
-- **WHEN** a user creates a change using the OpenSpeX variant
-- **THEN** the workflow SHALL persist that variant in the change metadata
-- **AND** it SHALL persist explicit git-governance fields for branch and
-  worktree tracking
+- **WHEN** the workflow writes or reports new strict-workflow metadata and
+  runtime context
+- **THEN** it SHALL use canonical `solidspec`-named variants, fields, and keys
+- **AND** it SHALL reserve `openspex` names for explicit compatibility paths
 
-#### Scenario: Surface actionable git setup guidance
+#### Scenario: Accept legacy OpenSpeX variant input
 
-- **WHEN** an OpenSpeX change is missing required git-governance metadata
-- **THEN** status and instruction output SHALL report the missing fields
-- **AND** the output SHALL identify the exact next setup action needed before
-  implementation can begin
+- **WHEN** a user or existing change still uses the legacy `openspex` variant
+  name
+- **THEN** the workflow SHALL continue to recognize it as the same strict
+  workflow
+- **AND** it SHALL preserve compatibility with previously written metadata
 
-### Requirement: OpenSpeX apply readiness checks
+#### Scenario: Surface canonical runtime context keys
 
-The artifact workflow SHALL block apply for OpenSpeX changes until both git and
-shadow-spec prerequisites are satisfied.
+- **WHEN** apply or status output exposes strict-workflow context entries
+- **THEN** the canonical key names SHALL use `solidspec` prefixes
+- **AND** migration support for legacy `openspex` keys SHALL be explicit rather
+  than accidental
+
+### Requirement: SolidSpec apply readiness checks
+
+The artifact workflow SHALL block apply for SolidSpec changes until git,
+shadow-spec, and code-discipline prerequisites are satisfied.
 
 #### Scenario: Apply blocked by missing managed-file delta
 
-- **WHEN** an OpenSpeX change declares a managed file whose `.delta.md` is
+- **WHEN** an SolidSpec change declares a managed file whose `.delta.md` is
   missing
 - **THEN** `openspec instructions apply --change <id>` SHALL report a blocked
   state
@@ -310,16 +319,32 @@ shadow-spec prerequisites are satisfied.
 
 #### Scenario: Apply blocked by missing managed-file inventory
 
-- **WHEN** an OpenSpeX change has no managed-file inventory yet
+- **WHEN** an SolidSpec change has no managed-file inventory yet
 - **THEN** the workflow SHALL not treat the change as implementation-ready
 - **AND** it SHALL instruct the user or agent to declare managed files before
   coding
 
-#### Scenario: Apply becomes ready after OpenSpeX prerequisites exist
+#### Scenario: Apply blocked by missing discipline manifest
 
-- **WHEN** git-governance metadata, managed-file inventory, and required deltas
-  all exist for an OpenSpeX change
+- **WHEN** an SolidSpec change has no declared code-discipline manifest
+- **THEN** `openspec instructions apply --change <id>` SHALL report a blocked
+  state
+- **AND** it SHALL tell the user or agent to declare the discipline policy and
+  validation commands before coding
+
+#### Scenario: Apply blocked by missing validation command declarations
+
+- **WHEN** an SolidSpec change has no explicit list of required validation
+  commands
+- **THEN** `openspec instructions apply --change <id>` SHALL report a blocked
+  state
+- **AND** it SHALL identify that the discipline gate configuration is incomplete
+
+#### Scenario: Apply becomes ready after SolidSpec prerequisites exist
+
+- **WHEN** git-governance metadata, managed-file inventory, required deltas,
+  code-discipline policy, and validation command declarations all exist for an
+  SolidSpec change
 - **THEN** the workflow SHALL allow apply to proceed
-- **AND** it SHALL carry the exact managed-file and shadow-path context into the
-  apply instructions
+- **AND** it SHALL carry the discipline context into the apply instructions
 

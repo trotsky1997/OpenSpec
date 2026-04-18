@@ -37,8 +37,28 @@ export const ALL_WORKFLOWS = [
 	"onboard",
 ] as const;
 
+/**
+ * Public workflows exposed to users through generated skills, commands, and
+ * profile selection surfaces. Internal helpers such as inspect stay out of
+ * this list so existing installs can be cleaned up without keeping them public.
+ */
+export const PUBLIC_WORKFLOWS = [
+	"propose",
+	"explore",
+	"new",
+	"continue",
+	"apply",
+	"ff",
+	"sync",
+	"archive",
+	"bulk-archive",
+	"clarify",
+	"onboard",
+] as const;
+
 export type WorkflowId = (typeof ALL_WORKFLOWS)[number];
 export type CoreWorkflowId = (typeof CORE_WORKFLOWS)[number];
+export type PublicWorkflowId = (typeof PUBLIC_WORKFLOWS)[number];
 
 /**
  * Resolves which workflows should be active for a given profile configuration.
@@ -50,8 +70,12 @@ export function getProfileWorkflows(
 	profile: Profile,
 	customWorkflows?: string[],
 ): readonly string[] {
+	const publicSet = new Set<string>(PUBLIC_WORKFLOWS as readonly string[]);
+
 	if (profile === "custom") {
-		return customWorkflows ?? [];
+		return (customWorkflows ?? []).filter((workflow) =>
+			publicSet.has(workflow),
+		);
 	}
 	return CORE_WORKFLOWS;
 }

@@ -5,7 +5,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 
 /**
  * Continue adapter for command generation.
@@ -15,13 +15,15 @@ import type { CommandContent, ToolCommandAdapter } from '../types.js';
 export const continueAdapter: ToolCommandAdapter = {
   toolId: 'continue',
 
-  getFilePath(commandId: string): string {
-    return path.join('.continue', 'prompts', `opsx-${commandId}.prompt`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.continue', 'prompts', `${namespace}-${commandId}.prompt`);
   },
 
   formatFile(content: CommandContent): string {
+    const namespace = content.namespace ?? DEFAULT_COMMAND_NAMESPACE;
+
     return `---
-name: opsx-${content.id}
+name: ${namespace}-${content.id}
 description: ${content.description}
 invokable: true
 ---

@@ -10,6 +10,7 @@ import path from "path";
 import * as fs from "fs";
 import { getSchemaDir, listSchemas } from "../../core/artifact-graph/index.js";
 import { validateChangeName } from "../../utils/change-utils.js";
+import type { StrictWorkflowVariant } from "../../utils/strict-workflow.js";
 
 // -----------------------------------------------------------------------------
 // Types
@@ -26,7 +27,7 @@ export interface ApplyInstructions {
 	changeDir: string;
 	schemaName: string;
 	contextFiles: Record<string, string[]>;
-	variant?: "openspex";
+	variant?: StrictWorkflowVariant;
 	blockingIssues?: string[];
 	managedFiles?: string[];
 	progress: {

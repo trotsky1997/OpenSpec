@@ -5,12 +5,13 @@ import {
 	getCommandContents,
 	generateSkillContent,
 } from "../../../src/core/shared/skill-generation.js";
+import { COMMAND_NAMESPACES } from "../../../src/core/command-generation/index.js";
 
 describe("skill-generation", () => {
 	describe("getSkillTemplates", () => {
-		it("should return all 13 skill templates", () => {
+		it("should return all 11 public skill templates", () => {
 			const templates = getSkillTemplates();
-			expect(templates).toHaveLength(13);
+			expect(templates).toHaveLength(11);
 		});
 
 		it("should have unique directory names", () => {
@@ -32,8 +33,8 @@ describe("skill-generation", () => {
 			expect(dirNames).toContain("openspec-sync-specs");
 			expect(dirNames).toContain("openspec-archive-change");
 			expect(dirNames).toContain("openspec-bulk-archive-change");
-			expect(dirNames).toContain("openspec-verify-change");
-			expect(dirNames).toContain("openspec-inspect-change");
+			expect(dirNames).not.toContain("openspec-verify-change");
+			expect(dirNames).not.toContain("openspec-inspect-change");
 			expect(dirNames).toContain("openspec-clarify-change");
 			expect(dirNames).toContain("openspec-onboard");
 			expect(dirNames).toContain("openspec-propose");
@@ -95,9 +96,9 @@ describe("skill-generation", () => {
 	});
 
 	describe("getCommandTemplates", () => {
-		it("should return all 13 command templates", () => {
+		it("should return all 11 public command templates", () => {
 			const templates = getCommandTemplates();
-			expect(templates).toHaveLength(13);
+			expect(templates).toHaveLength(11);
 		});
 
 		it("should have unique IDs", () => {
@@ -119,8 +120,8 @@ describe("skill-generation", () => {
 			expect(ids).toContain("sync");
 			expect(ids).toContain("archive");
 			expect(ids).toContain("bulk-archive");
-			expect(ids).toContain("verify");
-			expect(ids).toContain("inspect");
+			expect(ids).not.toContain("verify");
+			expect(ids).not.toContain("inspect");
 			expect(ids).toContain("clarify");
 			expect(ids).toContain("onboard");
 			expect(ids).toContain("propose");
@@ -156,9 +157,9 @@ describe("skill-generation", () => {
 	});
 
 	describe("getCommandContents", () => {
-		it("should return all 13 command contents", () => {
+		it("should return all 11 public command contents", () => {
 			const contents = getCommandContents();
-			expect(contents).toHaveLength(13);
+			expect(contents).toHaveLength(11);
 		});
 
 		it("should have valid content structure", () => {
@@ -195,6 +196,17 @@ describe("skill-generation", () => {
 			const all = getCommandContents();
 			const noFilter = getCommandContents(undefined);
 			expect(noFilter).toHaveLength(all.length);
+		});
+
+		it("should emit opsx and ssx command contents when requested", () => {
+			const contents = getCommandContents(undefined, COMMAND_NAMESPACES);
+			expect(contents).toHaveLength(22);
+			expect(
+				contents.filter((content) => content.namespace === "opsx"),
+			).toHaveLength(11);
+			expect(
+				contents.filter((content) => content.namespace === "ssx"),
+			).toHaveLength(11);
 		});
 	});
 

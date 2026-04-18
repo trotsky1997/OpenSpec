@@ -10,8 +10,10 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
 	return {
 		name: "openspec-apply-change",
 		description:
-			"Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.",
+			"Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks, including internal validation during the apply loop.",
 		instructions: `Implement tasks from an OpenSpec change.
+
+Apply is also the public implementation-time validation workflow: use it when you need both implementation and internal verify-style checks.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -46,10 +48,10 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
    - Task list with status
    - Dynamic instruction based on current state
 
-   **OpenSpeX-aware handling:**
-   - If the status or apply output includes \`variant: "openspex"\`, treat the change as git-governed
-   - Read any OpenSpeX-specific context entries such as managed-file manifests, canonical shadow impl-specs, changelogs, change-owned deltas, and any legacy delta paths reported for migration
-   - If apply is blocked on OpenSpeX issues, do not make formal code edits until the missing change-owned delta, legacy-delta migration issue, or git metadata problem is fixed
+   **SolidSpec-aware handling:**
+   - If the status or apply output includes \`variant: "solidspec"\`, treat the change as SolidSpec-governed. Legacy \`openspex\` metadata is equivalent.
+   - Read any SolidSpec-specific context entries such as managed-file manifests, discipline manifests, canonical shadow impl-specs, changelogs, change-owned deltas, and any legacy delta paths reported for migration
+   - If apply is blocked on SolidSpec issues, do not make formal code edits until the missing discipline manifest, validation command declarations, change-owned delta, legacy-delta migration issue, or git metadata problem is fixed
 
    **Handle states:**
    - If \`state: "blocked"\` (missing artifacts): show message, suggest using openspec-continue-change
@@ -63,7 +65,7 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
    - **spec-driven**: proposal, specs, design, tasks
    - Other schemas: follow the contextFiles from CLI output
 
-   If this is an OpenSpeX change, also read the managed-file inventory and only treat listed files as formally editable scope. If legacy delta paths are present, pause and reconcile them before formal edits continue.
+   If this is a SolidSpec change, also read the managed-file inventory and discipline manifest, only treat listed files as formally editable scope, and pause if discipline configuration or legacy delta migration is incomplete.
 
 5. **Show current progress**
 
@@ -74,6 +76,10 @@ export function getApplyChangeSkillTemplate(): SkillTemplate {
    - Dynamic instruction from CLI
 
 6. **Implement tasks (loop until done or blocked)**
+
+   **Internal verification during apply**:
+   - When you need readiness, correctness, scoped analysis, or closeout-style validation, run an internal verify-style pass as part of apply
+   - Fold the resulting validation findings back into the apply loop instead of sending the user to a separate public verify command
 
    For each pending task:
    - Show which task is being worked on
@@ -150,8 +156,8 @@ What would you like to do?
 **Guardrails**
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
-- If this is an OpenSpeX change, only make formal edits to files listed in the managed-file inventory
-- For OpenSpeX changes, do not bypass missing change-owned delta requirements or legacy-delta migration blockers just because the user wants to move faster
+- If this is a SolidSpec change, only make formal edits to files listed in the managed-file inventory
+- For SolidSpec changes, do not bypass missing discipline manifests, missing validation command declarations, change-owned delta requirements, or legacy-delta migration blockers just because the user wants to move faster
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task
@@ -212,10 +218,10 @@ export function getOpsxApplyCommandTemplate(): CommandTemplate {
    - Task list with status
    - Dynamic instruction based on current state
 
-   **OpenSpeX-aware handling:**
-   - If the status or apply output includes \`variant: "openspex"\`, treat the change as git-governed
-   - Read any OpenSpeX-specific context entries such as managed-file manifests, canonical shadow impl-specs, changelogs, change-owned deltas, and any legacy delta paths reported for migration
-   - If apply is blocked on OpenSpeX issues, do not make formal code edits until the missing change-owned delta, legacy-delta migration issue, or git metadata problem is fixed
+   **SolidSpec-aware handling:**
+   - If the status or apply output includes \`variant: "solidspec"\`, treat the change as SolidSpec-governed. Legacy \`openspex\` metadata is equivalent.
+   - Read any SolidSpec-specific context entries such as managed-file manifests, discipline manifests, canonical shadow impl-specs, changelogs, change-owned deltas, and any legacy delta paths reported for migration
+   - If apply is blocked on SolidSpec issues, do not make formal code edits until the missing discipline manifest, validation command declarations, change-owned delta, legacy-delta migration issue, or git metadata problem is fixed
 
    **Handle states:**
    - If \`state: "blocked"\` (missing artifacts): show message, suggest using \`/opsx:continue\`
@@ -229,7 +235,7 @@ export function getOpsxApplyCommandTemplate(): CommandTemplate {
    - **spec-driven**: proposal, specs, design, tasks
    - Other schemas: follow the contextFiles from CLI output
 
-   If this is an OpenSpeX change, also read the managed-file inventory and only treat listed files as formally editable scope. If legacy delta paths are present, pause and reconcile them before formal edits continue.
+   If this is a SolidSpec change, also read the managed-file inventory and discipline manifest, only treat listed files as formally editable scope, and pause if discipline configuration or legacy delta migration is incomplete.
 
 5. **Show current progress**
 
@@ -240,6 +246,10 @@ export function getOpsxApplyCommandTemplate(): CommandTemplate {
    - Dynamic instruction from CLI
 
 6. **Implement tasks (loop until done or blocked)**
+
+   **Internal verification during apply**:
+   - When you need readiness, correctness, scoped analysis, or closeout-style validation, run an internal verify-style pass as part of apply
+   - Fold the resulting validation findings back into the apply loop instead of sending the user to a separate public verify command
 
    For each pending task:
    - Show which task is being worked on
@@ -316,8 +326,8 @@ What would you like to do?
 **Guardrails**
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
-- If this is an OpenSpeX change, only make formal edits to files listed in the managed-file inventory
-- For OpenSpeX changes, do not bypass missing change-owned delta requirements or legacy-delta migration blockers just because the user wants to move faster
+- If this is a SolidSpec change, only make formal edits to files listed in the managed-file inventory
+- For SolidSpec changes, do not bypass missing discipline manifests, missing validation command declarations, change-owned delta requirements, or legacy-delta migration blockers just because the user wants to move faster
 - If task is ambiguous, pause and ask before implementing
 - If implementation reveals issues, pause and suggest artifact updates
 - Keep code changes minimal and scoped to each task

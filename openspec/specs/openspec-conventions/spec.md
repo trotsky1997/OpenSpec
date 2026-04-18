@@ -247,28 +247,35 @@ OpenSpec CLI design SHALL use verbs as top-level commands with nouns provided as
 
 ### Requirement: OpenSpeX variant conventions
 
-OpenSpec conventions SHALL define OpenSpeX as an opt-in variant for changes that
-need git-governed execution and file-level implementation traceability.
+OpenSpec conventions SHALL define `SolidSpec` as both the canonical public and
+canonical internal name for the strict workflow, while treating `openspex` as a
+legacy compatibility alias only.
 
-#### Scenario: Enable OpenSpeX for a change
+#### Scenario: Canonical naming guidance uses SolidSpec
 
-- **WHEN** authors choose the OpenSpeX variant for a change
-- **THEN** conventions SHALL require that change to follow dedicated worktree,
-  branch, review, and merge rules
-- **AND** the stricter rules SHALL apply only to the changes that explicitly use
-  the variant
+- **WHEN** conventions describe the strict workflow for maintained code or specs
+- **THEN** they SHALL use `SolidSpec` as the canonical name
+- **AND** they SHALL not require new maintained files or capability identifiers
+  to keep the old `openspex` name
+
+#### Scenario: Legacy alias remains documented only for migration
+
+- **WHEN** conventions mention `openspex`
+- **THEN** they SHALL describe it as a legacy compatibility alias
+- **AND** they SHALL explain that new maintained internals should use
+  `SolidSpec` naming instead
 
 #### Scenario: Standard OpenSpec change remains unchanged
 
-- **WHEN** authors create a regular OpenSpec change without the OpenSpeX variant
+- **WHEN** authors create a regular OpenSpec change without the strict variant
 - **THEN** the existing OpenSpec conventions SHALL continue to apply
-- **AND** the project SHALL not retroactively require git-governed shadow-spec
-  behavior for that change
+- **AND** the project SHALL not retroactively require git-governed,
+  code-discipline behavior for that change
 
-### Requirement: OpenSpeX shadow implementation tree
+### Requirement: SolidSpec shadow implementation tree
 
 OpenSpec conventions SHALL define a canonical shadow implementation tree for
-OpenSpeX-managed files.
+SolidSpec-managed files.
 
 #### Scenario: Canonical shadow layout for a managed file
 
@@ -279,7 +286,7 @@ OpenSpeX-managed files.
 
 #### Scenario: Tests share the same shadow convention
 
-- **WHEN** conventions describe how test files are documented in OpenSpeX
+- **WHEN** conventions describe how test files are documented in SolidSpec
 - **THEN** test files SHALL follow the same shadow `impl-spec` convention as
   source files
 - **AND** conventions SHALL not require a separate `test-spec` hierarchy

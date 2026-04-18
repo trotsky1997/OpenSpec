@@ -9,8 +9,10 @@ export function getInspectChangeSkillTemplate(): SkillTemplate {
 	return {
 		name: "openspec-inspect-change",
 		description:
-			"Inspect one task or feature inside an OpenSpec change. Use when the user wants a deep implementation review of a specific scoped target rather than a whole-change verify pass.",
-		instructions: `Inspect a specific task or feature inside an OpenSpec change.
+			"Internal helper for deep task- or feature-scoped inspection inside an OpenSpec change. Use from apply or other workflows rather than exposing it directly to users.",
+		instructions: `Run an internal scoped inspection for one task or feature inside an OpenSpec change.
+
+This helper is not a public user workflow. Other workflows such as apply call it when they need a deeper scoped implementation pass.
 
 **Input**: Optionally specify a change name and a scope target. The scope can be a task from tasks.md or a feature / requirement from the change specs. If either is missing or ambiguous you MUST prompt.
 
@@ -120,8 +122,8 @@ export function getInspectChangeSkillTemplate(): SkillTemplate {
 - Reuse verify-style evidence, but keep the report limited to the chosen task or feature
 - Cite file paths and tests when possible
 - Do not modify code, tasks, or specs as part of inspect
-- If the user wants full readiness judgment, suggest using \
-\`/opsx:verify\`
+- If the user wants full implementation-time validation, suggest using \
+\`/opsx:apply\`
 `,
 		license: "MIT",
 		compatibility: "Requires openspec CLI.",
@@ -131,9 +133,9 @@ export function getInspectChangeSkillTemplate(): SkillTemplate {
 
 export function getOpsxInspectCommandTemplate(): CommandTemplate {
 	return {
-		name: "OPSX: Inspect",
+		name: "OPSX: Inspect (Internal)",
 		description:
-			"Inspect one task or feature inside a change with a deeper, scoped report",
+			"Internal helper for inspect-style scoped analysis used by other workflows",
 		category: "Workflow",
 		tags: ["workflow", "inspect", "analysis", "experimental"],
 		content: `Inspect a specific task or feature inside an OpenSpec change.
@@ -239,8 +241,8 @@ export function getOpsxInspectCommandTemplate(): CommandTemplate {
 - Reuse verify-style evidence, but keep the report limited to the chosen task or feature
 - Cite file paths and tests when possible
 - Do not modify code, tasks, or specs as part of inspect
-- If the user wants full readiness judgment, suggest using \
-\`/opsx:verify\`
+- If the user wants full implementation-time validation, suggest using \
+\`/opsx:apply\`
 `,
 	};
 }

@@ -40,7 +40,7 @@ When ready to implement, run /opsx:apply
    openspec new change "<name>"
    \`\`\`
 
-   If the user explicitly wants the OpenSpeX variant (git-governed worktree/branch/PR/merge flow with shadow impl-specs), add \`--variant openspex\`.
+   If the user explicitly wants the SolidSpec variant (git-governed worktree/branch/PR/merge flow with shadow impl-specs), add \`--variant solidspec\`. Legacy \`openspex\` remains accepted.
    If the user has already identified governed files, add repeated \`--manage-file <repo-relative-path>\` flags so the change scaffolds its own \`shadow-deltas/\` files.
    This creates a scaffolded change at \`openspec/changes/<name>/\` with \`.openspec.yaml\`.
 
@@ -155,7 +155,7 @@ When ready to implement, run /opsx:apply
    openspec new change "<name>"
    \`\`\`
 
-   If the user explicitly wants the OpenSpeX variant (git-governed worktree/branch/PR/merge flow with shadow impl-specs), add \`--variant openspex\`.
+   If the user explicitly wants the SolidSpec variant (git-governed worktree/branch/PR/merge flow with shadow impl-specs), add \`--variant solidspec\`. Legacy \`openspex\` remains accepted.
    If the user has already identified governed files, add repeated \`--manage-file <repo-relative-path>\` flags so the change scaffolds its own \`shadow-deltas/\` files.
    This creates a scaffolded change at \`openspec/changes/<name>/\` with \`.openspec.yaml\`.
 

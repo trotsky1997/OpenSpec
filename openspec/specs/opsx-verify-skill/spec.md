@@ -190,21 +190,25 @@ The agent SHALL gracefully handle changes with varying artifact completeness.
 
 ### Requirement: OpenSpeX workflow evidence verification
 
-`/opsx:verify` SHALL enforce git-governance evidence for OpenSpeX changes.
+`/opsx:verify` SHALL treat `SolidSpec` as the canonical internal
+strict-workflow name while continuing to accept legacy `openspex` evidence.
 
-#### Scenario: Report missing git-governance evidence
+#### Scenario: Canonical verification reports use SolidSpec naming
 
-- **WHEN** an OpenSpeX change is missing its recorded worktree, branch, PR, or
-  merge evidence
-- **THEN** `/opsx:verify` SHALL report the missing evidence as CRITICAL issues
-- **AND** it SHALL not declare the change ready for completion
+- **WHEN** `/opsx:verify` reports strict-workflow evidence, blockers, or merged
+  shadow artifacts
+- **THEN** it SHALL use canonical `SolidSpec` naming in maintained reports and
+  code paths
+- **AND** it SHALL not present `openspex` as the primary maintained internal
+  name
 
-#### Scenario: Accept OpenSpeX git evidence when complete
+#### Scenario: Legacy evidence remains readable
 
-- **WHEN** an OpenSpeX change has the expected worktree, branch, PR reference,
-  and merge evidence recorded
-- **THEN** `/opsx:verify` SHALL include those checks in its completion report
-- **AND** it SHALL treat the git-governance dimension as satisfied
+- **WHEN** verification encounters legacy `openspex` metadata or compatibility
+  artifacts
+- **THEN** it SHALL continue to interpret them as the same strict workflow
+- **AND** it SHALL normalize them into the canonical `SolidSpec` verification
+  model
 
 ### Requirement: Shadow-spec closure verification
 
@@ -220,7 +224,7 @@ shadow `impl-spec` state.
 
 #### Scenario: Merge accepted delta and changelog on successful verify
 
-- **WHEN** a managed file satisfies the OpenSpeX verification checks
+- **WHEN** a managed file satisfies the SolidSpec verification checks
 - **THEN** `/opsx:verify` SHALL merge that file's accepted `.delta.md` into the
   canonical shadow `impl-spec`
 - **AND** it SHALL append the matching shadow changelog entry before declaring
@@ -240,15 +244,30 @@ readiness.
 
 #### Scenario: Apply-complete change still fails verify
 
-- **WHEN** `/opsx:apply` has completed the implementation tasks for an OpenSpeX
+- **WHEN** `/opsx:apply` has completed the implementation tasks for an SolidSpec
   change
 - **AND** shadow-spec closure or git-governance evidence is still missing
 - **THEN** `/opsx:verify` SHALL fail the change with CRITICAL issues
 - **AND** it SHALL explain that apply readiness does not imply completion
 
+#### Scenario: Verify fails on model/type discipline violation
+
+- **WHEN** an SolidSpec change introduces governed code that violates its
+  declared model/type discipline without an explicit waiver
+- **THEN** `/opsx:verify` SHALL report that violation as a CRITICAL issue
+- **AND** it SHALL explain which file or scope appears to violate the declared
+  discipline
+
+#### Scenario: Verify fails on validation command failure
+
+- **WHEN** any required validation command such as `ruff`, `ty`, `pyright`,
+  `pnpm lint`, or `pnpm typecheck` fails for an SolidSpec change
+- **THEN** `/opsx:verify` SHALL report the failing command as a CRITICAL issue
+- **AND** it SHALL not treat the change as ready for completion
+
 #### Scenario: Verify checks tests as managed files
 
-- **WHEN** a test file appears in the OpenSpeX managed-file inventory
+- **WHEN** a test file appears in the SolidSpec managed-file inventory
 - **THEN** `/opsx:verify` SHALL apply the same delta, shadow-spec, and changelog
   checks that it applies to source files
 - **AND** it SHALL not downgrade test-file coverage to an optional suggestion

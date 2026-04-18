@@ -50,6 +50,20 @@ describe("ChangeMetadataSchema", () => {
 			});
 			expect(result.success).toBe(true);
 		});
+
+		it("should accept valid SolidSpec metadata", () => {
+			const result = ChangeMetadataSchema.safeParse({
+				schema: "spec-driven",
+				variant: "solidspec",
+				solidspec: {
+					repoRoot: "/tmp/repo",
+					branch: "solidspec/add-auth",
+					worktree: "/tmp/repo-add-auth",
+					cleanup: "pending",
+				},
+			});
+			expect(result.success).toBe(true);
+		});
 	});
 
 	describe("invalid metadata", () => {
@@ -97,6 +111,20 @@ describe("ChangeMetadataSchema", () => {
 			const result = ChangeMetadataSchema.safeParse({
 				schema: "spec-driven",
 				variant: "openspex",
+			});
+			expect(result.success).toBe(false);
+		});
+
+		it("should reject mixed solidspec and openspex metadata blocks", () => {
+			const result = ChangeMetadataSchema.safeParse({
+				schema: "spec-driven",
+				variant: "solidspec",
+				solidspec: {
+					repoRoot: "/tmp/repo",
+				},
+				openspex: {
+					repoRoot: "/tmp/repo",
+				},
 			});
 			expect(result.success).toBe(false);
 		});

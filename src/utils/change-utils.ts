@@ -4,10 +4,15 @@ import { FileSystemUtils } from "./file-system.js";
 import { writeChangeMetadata, validateSchemaName } from "./change-metadata.js";
 import { readProjectConfig } from "../core/project-config.js";
 import {
-	OPENSPEX_VARIANT,
+	scaffoldSolidSpecDisciplineManifest,
 	scaffoldManagedFiles,
-	setupOpenSpexWorkspace,
-} from "./openspex.js";
+	setupSolidSpecWorkspace,
+} from "./solidspec.js";
+import {
+	SOLIDSPEC_VARIANT,
+	type StrictWorkflowVariant,
+	isStrictWorkflowVariant,
+} from "./strict-workflow.js";
 
 const DEFAULT_SCHEMA = "spec-driven";
 
@@ -18,16 +23,16 @@ export interface CreateChangeOptions {
 	/** The workflow schema to use (default: 'spec-driven') */
 	schema?: string;
 	/** Optional execution variant for stricter workflows */
-	variant?: "openspex";
-	/** Optional OpenSpeX branch override */
+	variant?: StrictWorkflowVariant;
+	/** Optional SolidSpec branch override */
 	branch?: string;
-	/** Optional OpenSpeX worktree path override */
+	/** Optional SolidSpec worktree path override */
 	worktree?: string;
-	/** Optional OpenSpeX pull request reference */
+	/** Optional SolidSpec pull request reference */
 	pr?: string;
-	/** Optional OpenSpeX merge commit SHA */
+	/** Optional SolidSpec merge commit SHA */
 	mergeCommit?: string;
-	/** Repo-relative files to place under OpenSpeX shadow-spec management */
+	/** Repo-relative files to place under SolidSpec shadow-spec management */
 	managedFiles?: string[];
 }
 
@@ -192,10 +197,10 @@ export async function createChange(
 	const metadata: ChangeMetadata = {
 		schema: schemaName,
 		created: today,
-		...(options.variant === OPENSPEX_VARIANT
+		...(isStrictWorkflowVariant(options.variant)
 			? {
-					variant: OPENSPEX_VARIANT,
-					openspex: setupOpenSpexWorkspace(projectRoot, name, {
+					variant: SOLIDSPEC_VARIANT,
+					solidspec: setupSolidSpecWorkspace(projectRoot, name, {
 						branch: options.branch,
 						worktree: options.worktree,
 						pr: options.pr,
@@ -207,8 +212,12 @@ export async function createChange(
 
 	writeChangeMetadata(changeDir, metadata, projectRoot);
 
+	if (isStrictWorkflowVariant(options.variant)) {
+		scaffoldSolidSpecDisciplineManifest(changeDir);
+	}
+
 	if (
-		options.variant === OPENSPEX_VARIANT &&
+		isStrictWorkflowVariant(options.variant) &&
 		options.managedFiles &&
 		options.managedFiles.length > 0
 	) {

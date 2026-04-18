@@ -9,9 +9,13 @@ import {
 } from "../../utils/change-metadata.js";
 import { FileSystemUtils } from "../../utils/file-system.js";
 import {
-	getOpenSpexReadiness,
-	isOpenSpexVariant,
-} from "../../utils/openspex.js";
+	getSolidSpecReadiness,
+	isSolidSpecVariant,
+} from "../../utils/solidspec.js";
+import {
+	SOLIDSPEC_VARIANT,
+	type StrictWorkflowVariant,
+} from "../../utils/strict-workflow.js";
 import { readProjectConfig, validateConfigRules } from "../project-config.js";
 import type { Artifact, ChangeMetadata, CompletedSet } from "./types.js";
 
@@ -122,10 +126,10 @@ export interface ChangeStatus {
 	/** Artifact IDs required before apply phase (from schema's apply.requires) */
 	applyRequires: string[];
 	/** Optional execution variant for the change */
-	variant?: "openspex";
-	/** OpenSpeX readiness issues that block implementation */
+	variant?: StrictWorkflowVariant;
+	/** SolidSpec readiness issues that block implementation */
 	readinessIssues?: string[];
-	/** Managed files tracked by OpenSpeX, when applicable */
+	/** Managed files tracked by SolidSpec, when applicable */
 	managedFiles?: string[];
 	/** Status of each artifact */
 	artifacts: ArtifactStatus[];
@@ -359,7 +363,7 @@ export function formatChangeStatus(context: ChangeContext): ChangeStatus {
 	const schema = resolveSchema(context.schemaName, context.projectRoot);
 	const applyRequires =
 		schema.apply?.requires ?? schema.artifacts.map((a) => a.id);
-	const openspexReadiness = getOpenSpexReadiness(
+	const solidspecReadiness = getSolidSpecReadiness(
 		context.changeDir,
 		context.projectRoot,
 		context.metadata,
@@ -406,12 +410,14 @@ export function formatChangeStatus(context: ChangeContext): ChangeStatus {
 		schemaName: context.schemaName,
 		isComplete: context.graph.isComplete(context.completed),
 		applyRequires,
-		variant: isOpenSpexVariant(context.metadata) ? "openspex" : undefined,
+		variant: isSolidSpecVariant(context.metadata)
+			? SOLIDSPEC_VARIANT
+			: undefined,
 		readinessIssues:
-			openspexReadiness && openspexReadiness.blockingIssues.length > 0
-				? openspexReadiness.blockingIssues
+			solidspecReadiness && solidspecReadiness.blockingIssues.length > 0
+				? solidspecReadiness.blockingIssues
 				: undefined,
-		managedFiles: openspexReadiness?.managedFiles.map((file) => file.path),
+		managedFiles: solidspecReadiness?.managedFiles.map((file) => file.path),
 		artifacts: artifactStatuses,
 	};
 }

@@ -3,6 +3,7 @@ import { describe, it, expect } from "vitest";
 import {
 	CORE_WORKFLOWS,
 	ALL_WORKFLOWS,
+	PUBLIC_WORKFLOWS,
 	getProfileWorkflows,
 } from "../../src/core/profiles.js";
 
@@ -49,6 +50,15 @@ describe("profiles", () => {
 		});
 	});
 
+	describe("PUBLIC_WORKFLOWS", () => {
+		it("should omit inspect and verify from the public workflow list", () => {
+			expect(PUBLIC_WORKFLOWS).toHaveLength(11);
+			expect(PUBLIC_WORKFLOWS).not.toContain("verify");
+			expect(PUBLIC_WORKFLOWS).not.toContain("inspect");
+			expect(PUBLIC_WORKFLOWS).toContain("apply");
+		});
+	});
+
 	describe("getProfileWorkflows", () => {
 		it("should return core workflows for core profile", () => {
 			const result = getProfileWorkflows("core");
@@ -64,6 +74,16 @@ describe("profiles", () => {
 			const customWorkflows = ["explore", "new", "apply", "ff"];
 			const result = getProfileWorkflows("custom", customWorkflows);
 			expect(result).toEqual(customWorkflows);
+		});
+
+		it("should filter inspect and verify out of custom profiles because they are internal", () => {
+			const result = getProfileWorkflows("custom", [
+				"explore",
+				"inspect",
+				"verify",
+				"apply",
+			]);
+			expect(result).toEqual(["explore", "apply"]);
 		});
 
 		it("should return empty array for custom profile with no customWorkflows", () => {

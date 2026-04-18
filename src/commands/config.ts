@@ -22,6 +22,7 @@ import {
 import {
 	CORE_WORKFLOWS,
 	ALL_WORKFLOWS,
+	PUBLIC_WORKFLOWS,
 	getProfileWorkflows,
 } from "../core/profiles.js";
 import { OPENSPEC_DIR_NAME } from "../core/config.js";
@@ -150,7 +151,7 @@ function stableWorkflowOrder(workflows: readonly string[]): string[] {
 	const seen = new Set<string>();
 	const ordered: string[] = [];
 
-	for (const workflow of ALL_WORKFLOWS) {
+	for (const workflow of PUBLIC_WORKFLOWS) {
 		if (workflows.includes(workflow) && !seen.has(workflow)) {
 			ordered.push(workflow);
 			seen.add(workflow);
@@ -158,7 +159,7 @@ function stableWorkflowOrder(workflows: readonly string[]): string[] {
 	}
 
 	const extras = workflows.filter(
-		(w) => !ALL_WORKFLOWS.includes(w as (typeof ALL_WORKFLOWS)[number]),
+		(w) => !PUBLIC_WORKFLOWS.includes(w as (typeof PUBLIC_WORKFLOWS)[number]),
 	);
 	extras.sort();
 	for (const extra of extras) {
@@ -655,14 +656,14 @@ export function registerConfigCommand(program: Command): void {
 					const selectedWorkflows = await checkbox<string>({
 						message: "Select workflows to make available:",
 						instructions: "Space to toggle, Enter to confirm",
-						pageSize: ALL_WORKFLOWS.length,
+						pageSize: PUBLIC_WORKFLOWS.length,
 						theme: {
 							icon: {
 								checked: "[x]",
 								unchecked: "[ ]",
 							},
 						},
-						choices: ALL_WORKFLOWS.map(formatWorkflowChoice),
+						choices: PUBLIC_WORKFLOWS.map(formatWorkflowChoice),
 					});
 					nextState.workflows = selectedWorkflows;
 					nextState.profile =

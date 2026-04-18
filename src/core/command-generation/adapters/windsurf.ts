@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 
 /**
  * Escapes a string value for safe YAML output.
@@ -39,8 +39,8 @@ function formatTagsArray(tags: string[]): string {
 export const windsurfAdapter: ToolCommandAdapter = {
   toolId: 'windsurf',
 
-  getFilePath(commandId: string): string {
-    return path.join('.windsurf', 'workflows', `opsx-${commandId}.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.windsurf', 'workflows', `${namespace}-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {

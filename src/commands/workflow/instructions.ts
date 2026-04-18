@@ -16,11 +16,14 @@ import {
 	type ArtifactInstructions,
 } from "../../core/artifact-graph/index.js";
 import {
-	getOpenSpexContextFiles,
-	getOpenSpexReadiness,
-	isOpenSpexVariant,
-	OPENSPEX_VARIANT,
-} from "../../utils/openspex.js";
+	getSolidSpecContextFiles,
+	getSolidSpecReadiness,
+	isSolidSpecVariant,
+} from "../../utils/solidspec.js";
+import {
+	SOLIDSPEC_DISPLAY_NAME,
+	SOLIDSPEC_VARIANT,
+} from "../../utils/strict-workflow.js";
 import {
 	validateChangeExists,
 	validateSchemaExists,
@@ -305,15 +308,15 @@ export async function generateApplyInstructions(
 		}
 	}
 
-	const openspexReadiness = getOpenSpexReadiness(
+	const solidspecReadiness = getSolidSpecReadiness(
 		changeDir,
 		projectRoot,
 		context.metadata,
 	);
-	if (openspexReadiness) {
+	if (solidspecReadiness) {
 		Object.assign(
 			contextFiles,
-			getOpenSpexContextFiles(projectRoot, openspexReadiness),
+			getSolidSpecContextFiles(projectRoot, solidspecReadiness),
 		);
 	}
 
@@ -337,14 +340,14 @@ export async function generateApplyInstructions(
 	// Determine state and instruction
 	let state: ApplyInstructions["state"];
 	let instruction: string;
-	const blockingIssues = openspexReadiness?.blockingIssues ?? [];
+	const blockingIssues = solidspecReadiness?.blockingIssues ?? [];
 
 	if (missingArtifacts.length > 0) {
 		state = "blocked";
 		instruction = `Cannot apply this change yet. Missing artifacts: ${missingArtifacts.join(", ")}.\nUse the openspec-continue-change skill to create the missing artifacts first.`;
 	} else if (blockingIssues.length > 0) {
 		state = "blocked";
-		instruction = `Cannot apply this OpenSpeX change yet. Resolve these issues first:\n- ${blockingIssues.join("\n- ")}`;
+		instruction = `Cannot apply this ${SOLIDSPEC_DISPLAY_NAME} change yet. Resolve these issues first:\n- ${blockingIssues.join("\n- ")}`;
 	} else if (tracksFile && !tracksFileExists) {
 		// Tracking file configured but doesn't exist yet
 		const tracksFilename = path.basename(tracksFile);
@@ -377,9 +380,11 @@ export async function generateApplyInstructions(
 		changeDir,
 		schemaName: context.schemaName,
 		contextFiles,
-		variant: isOpenSpexVariant(context.metadata) ? OPENSPEX_VARIANT : undefined,
+		variant: isSolidSpecVariant(context.metadata)
+			? SOLIDSPEC_VARIANT
+			: undefined,
 		blockingIssues: blockingIssues.length > 0 ? blockingIssues : undefined,
-		managedFiles: openspexReadiness?.managedFiles.map((file) => file.path),
+		managedFiles: solidspecReadiness?.managedFiles.map((file) => file.path),
 		progress: { total, complete, remaining },
 		tasks,
 		state,
@@ -462,7 +467,7 @@ export function printApplyInstructionsText(
 	}
 
 	if (blockingIssues && blockingIssues.length > 0) {
-		console.log("### OpenSpeX Issues");
+		console.log(`### ${SOLIDSPEC_DISPLAY_NAME} Issues`);
 		for (const issue of blockingIssues) {
 			console.log(`- ${issue}`);
 		}

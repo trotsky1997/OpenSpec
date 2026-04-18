@@ -28,7 +28,7 @@ describe("tool-detection", () => {
 
 	describe("SKILL_NAMES", () => {
 		it("should contain all skill names matching COMMAND_IDS", () => {
-			expect(SKILL_NAMES).toHaveLength(13);
+			expect(SKILL_NAMES).toHaveLength(11);
 			expect(SKILL_NAMES).toContain("openspec-explore");
 			expect(SKILL_NAMES).toContain("openspec-new-change");
 			expect(SKILL_NAMES).toContain("openspec-continue-change");
@@ -37,8 +37,8 @@ describe("tool-detection", () => {
 			expect(SKILL_NAMES).toContain("openspec-sync-specs");
 			expect(SKILL_NAMES).toContain("openspec-archive-change");
 			expect(SKILL_NAMES).toContain("openspec-bulk-archive-change");
-			expect(SKILL_NAMES).toContain("openspec-verify-change");
-			expect(SKILL_NAMES).toContain("openspec-inspect-change");
+			expect(SKILL_NAMES).not.toContain("openspec-verify-change");
+			expect(SKILL_NAMES).not.toContain("openspec-inspect-change");
 			expect(SKILL_NAMES).toContain("openspec-clarify-change");
 			expect(SKILL_NAMES).toContain("openspec-onboard");
 			expect(SKILL_NAMES).toContain("openspec-propose");

@@ -36,17 +36,17 @@ export function getNewChangeSkillTemplate(): SkillTemplate {
 
    **Otherwise**: Omit \`--schema\` to use the default.
 
-   **Determine whether the user wants the OpenSpeX variant:**
-   - If they mention OpenSpeX, git-governed changes, worktrees, branch/PR/merge enforcement, or shadow impl-specs → add \`--variant openspex\`
-   - If they name files that should be governed from the start → add one \`--manage-file <repo-relative-path>\` flag per file so OpenSpeX scaffolds change-owned deltas under \`openspec/changes/<change>/shadow-deltas/\`
-   - If using OpenSpeX, remind yourself that creation requires the project to be inside a git repository
+   **Determine whether the user wants the SolidSpec variant:**
+   - If they mention SolidSpec or OpenSpeX, git-governed changes, worktrees, branch/PR/merge enforcement, or shadow impl-specs → add \`--variant solidspec\`
+   - If they name files that should be governed from the start → add one \`--manage-file <repo-relative-path>\` flag per file so SolidSpec scaffolds change-owned deltas under \`openspec/changes/<change>/shadow-deltas/\`
+   - If using SolidSpec, remind yourself that creation requires the project to be inside a git repository
 
 3. **Create the change directory**
    \`\`\`bash
    openspec new change "<name>"
    \`\`\`
    Add \`--schema <name>\` only if the user requested a specific workflow.
-   Add \`--variant openspex\` only if the user explicitly wants the stricter OpenSpeX workflow.
+   Add \`--variant solidspec\` when the user explicitly wants the stricter SolidSpec workflow. Legacy \`openspex\` remains a compatibility alias.
    Add repeated \`--manage-file <path>\` flags when the user has already identified governed files so the change scaffolds its own \`shadow-deltas/\` files.
    This creates a scaffolded change at \`openspec/changes/<name>/\` with the selected schema.
 
@@ -119,17 +119,17 @@ export function getOpsxNewCommandTemplate(): CommandTemplate {
 
    **Otherwise**: Omit \`--schema\` to use the default.
 
-   **Determine whether the user wants the OpenSpeX variant:**
-   - If they mention OpenSpeX, git-governed changes, worktrees, branch/PR/merge enforcement, or shadow impl-specs → add \`--variant openspex\`
-   - If they name files that should be governed from the start → add one \`--manage-file <repo-relative-path>\` flag per file so OpenSpeX scaffolds change-owned deltas under \`openspec/changes/<change>/shadow-deltas/\`
-   - If using OpenSpeX, remember it requires the project to be inside a git repository
+   **Determine whether the user wants the SolidSpec variant:**
+   - If they mention SolidSpec or OpenSpeX, git-governed changes, worktrees, branch/PR/merge enforcement, or shadow impl-specs → add \`--variant solidspec\`
+   - If they name files that should be governed from the start → add one \`--manage-file <repo-relative-path>\` flag per file so SolidSpec scaffolds change-owned deltas under \`openspec/changes/<change>/shadow-deltas/\`
+   - If using SolidSpec, remember it requires the project to be inside a git repository
 
 3. **Create the change directory**
    \`\`\`bash
    openspec new change "<name>"
    \`\`\`
    Add \`--schema <name>\` only if the user requested a specific workflow.
-   Add \`--variant openspex\` only if the user explicitly wants the stricter OpenSpeX workflow.
+   Add \`--variant solidspec\` when the user explicitly wants the stricter SolidSpec workflow. Legacy \`openspex\` remains a compatibility alias.
    Add repeated \`--manage-file <path>\` flags when the user has already identified governed files so the change scaffolds its own \`shadow-deltas/\` files.
    This creates a scaffolded change at \`openspec/changes/<name>/\` with the selected schema.
 

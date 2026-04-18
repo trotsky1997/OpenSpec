@@ -14,7 +14,6 @@ import {
 	getArchiveChangeSkillTemplate,
 	getBulkArchiveChangeSkillTemplate,
 	getVerifyChangeSkillTemplate,
-	getInspectChangeSkillTemplate,
 	getClarifyChangeSkillTemplate,
 	getOnboardSkillTemplate,
 	getOpsxProposeSkillTemplate,
@@ -27,13 +26,17 @@ import {
 	getOpsxArchiveCommandTemplate,
 	getOpsxBulkArchiveCommandTemplate,
 	getOpsxVerifyCommandTemplate,
-	getOpsxInspectCommandTemplate,
 	getOpsxClarifyCommandTemplate,
 	getOpsxOnboardCommandTemplate,
 	getOpsxProposeCommandTemplate,
 	type SkillTemplate,
 } from "../templates/skill-templates.js";
-import type { CommandContent } from "../command-generation/index.js";
+import {
+	DEFAULT_COMMAND_NAMESPACE,
+	type CommandContent,
+	type CommandNamespace,
+} from "../command-generation/index.js";
+import { rewriteCommandNamespace } from "../../utils/command-references.js";
 
 /**
  * Skill template with directory name and workflow ID mapping.
@@ -102,16 +105,6 @@ export function getSkillTemplates(
 			workflowId: "bulk-archive",
 		},
 		{
-			template: getVerifyChangeSkillTemplate(),
-			dirName: "openspec-verify-change",
-			workflowId: "verify",
-		},
-		{
-			template: getInspectChangeSkillTemplate(),
-			dirName: "openspec-inspect-change",
-			workflowId: "inspect",
-		},
-		{
 			template: getClarifyChangeSkillTemplate(),
 			dirName: "openspec-clarify-change",
 			workflowId: "clarify",
@@ -151,8 +144,6 @@ export function getCommandTemplates(
 		{ template: getOpsxSyncCommandTemplate(), id: "sync" },
 		{ template: getOpsxArchiveCommandTemplate(), id: "archive" },
 		{ template: getOpsxBulkArchiveCommandTemplate(), id: "bulk-archive" },
-		{ template: getOpsxVerifyCommandTemplate(), id: "verify" },
-		{ template: getOpsxInspectCommandTemplate(), id: "inspect" },
 		{ template: getOpsxClarifyCommandTemplate(), id: "clarify" },
 		{ template: getOpsxOnboardCommandTemplate(), id: "onboard" },
 		{ template: getOpsxProposeCommandTemplate(), id: "propose" },
@@ -171,16 +162,30 @@ export function getCommandTemplates(
  */
 export function getCommandContents(
 	workflowFilter?: readonly string[],
+	namespaces: readonly CommandNamespace[] = [DEFAULT_COMMAND_NAMESPACE],
 ): CommandContent[] {
 	const commandTemplates = getCommandTemplates(workflowFilter);
-	return commandTemplates.map(({ template, id }) => ({
+	return namespaces.flatMap((namespace) =>
+		commandTemplates.map(({ template, id }) =>
+			toCommandContent(template, id, namespace),
+		),
+	);
+}
+
+function toCommandContent(
+	template: ReturnType<typeof getOpsxExploreCommandTemplate>,
+	id: string,
+	namespace: CommandNamespace,
+): CommandContent {
+	return {
 		id,
-		name: template.name,
-		description: template.description,
+		namespace,
+		name: rewriteCommandNamespace(template.name, namespace),
+		description: rewriteCommandNamespace(template.description, namespace),
 		category: template.category,
 		tags: template.tags,
-		body: template.content,
-	}));
+		body: rewriteCommandNamespace(template.content, namespace),
+	};
 }
 
 /**

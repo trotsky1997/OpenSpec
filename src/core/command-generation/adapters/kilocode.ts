@@ -6,7 +6,7 @@
  */
 
 import path from 'path';
-import type { CommandContent, ToolCommandAdapter } from '../types.js';
+import { DEFAULT_COMMAND_NAMESPACE, type CommandContent, type CommandNamespace, type ToolCommandAdapter } from '../types.js';
 
 /**
  * Kilo Code adapter for command generation.
@@ -16,8 +16,8 @@ import type { CommandContent, ToolCommandAdapter } from '../types.js';
 export const kilocodeAdapter: ToolCommandAdapter = {
   toolId: 'kilocode',
 
-  getFilePath(commandId: string): string {
-    return path.join('.kilocode', 'workflows', `opsx-${commandId}.md`);
+  getFilePath(commandId: string, namespace: CommandNamespace = DEFAULT_COMMAND_NAMESPACE): string {
+    return path.join('.kilocode', 'workflows', `${namespace}-${commandId}.md`);
   },
 
   formatFile(content: CommandContent): string {
