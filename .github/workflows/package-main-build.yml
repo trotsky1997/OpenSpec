@@ -73,11 +73,9 @@ jobs:
           - Version: ${{ steps.pack.outputs.version }}
           - Workflow run: ${RUN_URL}
 
-          Install:
+          Preferred install:
 
-          curl -L -o fission-ai-openspec-main.tgz \
-            ${UNIQUE_DOWNLOAD_URL}
-          npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+          npm install -g ${UNIQUE_DOWNLOAD_URL} --ignore-scripts
           EOF
 
           cat > main-build-rolling-notes.md <<EOF
@@ -88,11 +86,9 @@ jobs:
           - Version: ${{ steps.pack.outputs.version }}
           - Workflow run: ${RUN_URL}
 
-          Install:
+          Preferred install:
 
-          curl -L -o fission-ai-openspec-main.tgz \
-            ${ROLLING_DOWNLOAD_URL}
-          npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+          npm install -g ${ROLLING_DOWNLOAD_URL} --ignore-scripts
           EOF
 
       - name: Create or update per-commit prerelease

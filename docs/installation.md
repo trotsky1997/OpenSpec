@@ -70,16 +70,23 @@ openspec --version
 ## Install the latest `main` build from GitHub
 
 If you need the latest packaged build from the repository before a registry
-release is cut, download the rolling `main-build` release asset and install it
-locally:
+release is cut, install the rolling `main-build` release asset directly:
 
 ```bash
-curl -L -o fission-ai-openspec-main.tgz \
-  https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz
-npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+npm install -g \
+  https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz \
+  --ignore-scripts
 ```
 
 This asset is refreshed by GitHub Actions on every push to `main`.
+
+To pin a specific build, use its matching `main-build-<short-sha>` release tag:
+
+```bash
+npm install -g \
+  https://github.com/Fission-AI/OpenSpec/releases/download/main-build-<short-sha>/fission-ai-openspec-main.tgz \
+  --ignore-scripts
+```
 
 ## Next Steps
 

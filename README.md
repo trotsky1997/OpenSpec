@@ -145,13 +145,18 @@ npm install -g @fission-ai/openspec@latest
 
 **Install the latest packaged `main` build from GitHub**
 
-If you want the current repository build before it lands on npm, download the
-rolling `main-build` release asset and install it locally:
+If you want the current repository build before it lands on npm, install the
+rolling `main-build` release asset directly:
 
 ```bash
-curl -L -o fission-ai-openspec-main.tgz \
-  https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz
-npm install -g ./fission-ai-openspec-main.tgz --ignore-scripts
+npm install -g https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz --ignore-scripts
+```
+
+If you need to pin an exact CI build, install from the matching
+`main-build-<short-sha>` release instead:
+
+```bash
+npm install -g https://github.com/Fission-AI/OpenSpec/releases/download/main-build-<short-sha>/fission-ai-openspec-main.tgz --ignore-scripts
 ```
 
 **Refresh agent instructions**

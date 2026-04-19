@@ -32,3 +32,14 @@ Both carry the same installable tarball asset:
 This gives contributors both an immutable per-commit build in the Releases page
 and a stable GitHub-hosted install target for the latest repository build
 without waiting for an npm publish.
+
+Install examples:
+
+```bash
+npm install -g \
+  https://github.com/Fission-AI/OpenSpec/releases/download/main-build/fission-ai-openspec-main.tgz \
+  --ignore-scripts
+npm install -g \
+  https://github.com/Fission-AI/OpenSpec/releases/download/main-build-<short-sha>/fission-ai-openspec-main.tgz \
+  --ignore-scripts
+```
